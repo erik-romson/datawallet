@@ -1,0 +1,27 @@
+[
+  {
+    "name": "alice_enc",
+    "public_key_hex": "1b1b58dd50ea14b60da17b790cd02754d970c9bab864ebb3c0f3016fe51d3f57",
+    "expected_fp_render": "2BWZ-M3AH-ISQG-WXHR"
+  },
+  {
+    "name": "alice_auth",
+    "public_key_hex": "8139770ea87d175f56a35466c34c7ecccb8d8a91b4ee37a25df60f5b8fc9b394",
+    "expected_fp_render": "NI4A-HVPQ-LGIC-UHDN"
+  },
+  {
+    "name": "bob_enc",
+    "public_key_hex": "75e270df2952c57ba8367ba8618c178f9fe50db2799d304e74e918d985686146",
+    "expected_fp_render": "PE42-U2W7-SEAD-P237"
+  },
+  {
+    "name": "acme_sign",
+    "public_key_hex": "6e7a1cdd29b0b78fd13af4c5598feff4ef2a97166e3ca6f2e4fbfccd80505bf1",
+    "expected_fp_render": "OWMX-O3BQ-QXR7-TWQN"
+  },
+  {
+    "name": "root_a",
+    "public_key_hex": "bc7cbcb5636375fa1d82434d466724d92377f53b980695dd49d26d0ce12205a5",
+    "expected_fp_render": "OMFF-5XBI-YL4N-V4WZ"
+  }
+]

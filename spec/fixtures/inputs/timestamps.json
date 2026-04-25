@@ -1,0 +1,9 @@
+{
+  "t_register": 1735689600000,
+  "t_envelope_basic": 1735776000000,
+  "t_envelope_v2": 1735862400000,
+  "t_directory_issued": 1735689000000,
+  "t_directory_valid_from": 1735600000000,
+  "t_directory_valid_until": 1767225600000,
+  "t_stale_created_at": 1735500000000
+}

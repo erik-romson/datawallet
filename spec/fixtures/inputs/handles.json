@@ -1,0 +1,17 @@
+[
+  {"handle": "alice", "normalized": "alice", "valid": true},
+  {"handle": "bob", "normalized": "bob", "valid": true},
+  {"handle": "charlie.dev", "normalized": "charlie.dev", "valid": true},
+  {"handle": "user-name_01", "normalized": "user-name_01", "valid": true},
+  {"handle": "ab", "normalized": "ab", "valid": true},
+  {"handle": "a", "normalized": null, "valid": false},
+  {"handle": "Admin", "normalized": null, "valid": false},
+  {"handle": "admin", "normalized": null, "valid": false},
+  {"handle": "_hidden", "normalized": null, "valid": false},
+  {"handle": ".dotstart", "normalized": null, "valid": false},
+  {"handle": "end-", "normalized": null, "valid": false},
+  {"handle": "has spaces", "normalized": null, "valid": false},
+  {"handle": "UPPER", "normalized": null, "valid": false},
+  {"handle": "root", "normalized": null, "valid": false},
+  {"handle": "system", "normalized": null, "valid": false}
+]
