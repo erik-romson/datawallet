@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"test", "it"})
-@Import({PostgresTestcontainer.class, FixtureIssuerKeyResolver.class})
+@Import({PostgresTestcontainer.class, FixtureIssuerKeyResolver.class, AdminRootUpdateControllerIT.PinnedRootOverride.class})
 class AdminRootUpdateControllerIT {
 
     /**
@@ -48,7 +48,7 @@ class AdminRootUpdateControllerIT {
      * Override the PinnedRootHolder with a version that has the same keys but far-future validity.
      */
     @TestConfiguration
-    static class PinnedRootOverride {
+    public static class PinnedRootOverride {
 
         private static final HexFormat HEX = HexFormat.of();
 
