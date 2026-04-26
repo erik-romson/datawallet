@@ -7,6 +7,8 @@ import com.wilhelmsen.cbslink.plugin.datawallet.crypto.CanonicalCborMapper;
 import com.wilhelmsen.cbslink.plugin.datawallet.crypto.Ed25519;
 import com.wilhelmsen.cbslink.plugin.datawallet.directory.DirectoryRecordCodec;
 import com.wilhelmsen.cbslink.plugin.datawallet.directory.DirectoryRecordVerifier;
+import com.wilhelmsen.cbslink.plugin.datawallet.directory.PinnedRoot;
+import com.wilhelmsen.cbslink.plugin.datawallet.directory.PinnedRootHolder;
 import com.wilhelmsen.cbslink.plugin.datawallet.domain.DirectoryRecordEntity;
 import com.wilhelmsen.cbslink.plugin.datawallet.domain.DirectoryRecordRepository;
 import com.wilhelmsen.cbslink.plugin.datawallet.persistence.PostgresTestcontainer;
@@ -72,6 +74,7 @@ class AdminDirectoryControllerIT {
     @Autowired private MockMvc mvc;
     @Autowired private DirectoryRecordRepository directoryRecordRepository;
     @Autowired private JdbcTemplate jdbcTemplate;
+    @Autowired private PinnedRootHolder pinnedRootHolder;
 
     private static final HexFormat HEX = HexFormat.of();
     private CanonicalCborMapper cbor;
@@ -101,6 +104,18 @@ class AdminDirectoryControllerIT {
 
         jdbcTemplate.update("DELETE FROM directory_records WHERE subject_id = ?::uuid",
                 TEST_SUBJECT_ID.toString());
+
+        // Other ITs (e.g. AdminRootUpdateControllerIT) write now-centered roots into
+        // pinned_root_history; the startup loader picks those up and overrides the
+        // fixture root. Reset to the fixture root so issued_at=ISSUED_AT is in window.
+        jdbcTemplate.update("DELETE FROM pinned_root_history");
+        pinnedRootHolder.update(loadFixturePinnedRoot());
+    }
+
+    private PinnedRoot loadFixturePinnedRoot() throws Exception {
+        Path fixturesDir = resolveFixturesDir();
+        byte[] bytes = Files.readAllBytes(fixturesDir.resolve("directory/pinned-root.cbor"));
+        return new DirectoryRecordCodec().decodePinnedRoot(bytes);
     }
 
     @Test
