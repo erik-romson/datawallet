@@ -3,6 +3,11 @@ name: CI
 on:
   push:
     branches: ['**']
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.gitignore'
+      - '.idea/**'
   pull_request:
 
 concurrency:

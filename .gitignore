@@ -43,3 +43,6 @@ tmp
 client/build/
 client/.dart_tool/
 /implement_features.*
+**/*.history
+**/*.checkpoint
+
