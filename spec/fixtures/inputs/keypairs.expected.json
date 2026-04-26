@@ -1,0 +1,42 @@
+{
+  "alice_enc": {
+    "type": "x25519",
+    "public_key_hex": "1b1b58dd50ea14b60da17b790cd02754d970c9bab864ebb3c0f3016fe51d3f57"
+  },
+  "alice_auth": {
+    "type": "ed25519",
+    "public_key_hex": "8139770ea87d175f56a35466c34c7ecccb8d8a91b4ee37a25df60f5b8fc9b394"
+  },
+  "bob_enc": {
+    "type": "x25519",
+    "public_key_hex": "75e270df2952c57ba8367ba8618c178f9fe50db2799d304e74e918d985686146"
+  },
+  "bob_auth": {
+    "type": "ed25519",
+    "public_key_hex": "ca93ac1705187071d67b83c7ff0efe8108e8ec4530575d7726879333dbdabe7c"
+  },
+  "charlie_enc": {
+    "type": "x25519",
+    "public_key_hex": "90e68be878c7cae260234f24f9745794d1605d5a13c0eec971695e44557b5800"
+  },
+  "acme_sign": {
+    "type": "ed25519",
+    "public_key_hex": "6e7a1cdd29b0b78fd13af4c5598feff4ef2a97166e3ca6f2e4fbfccd80505bf1"
+  },
+  "wrong_issuer": {
+    "type": "ed25519",
+    "public_key_hex": "ea4a6c63e29c520abef5507b132ec5f9954776aebebe7b92421eea691446d22c"
+  },
+  "root_a": {
+    "type": "ed25519",
+    "public_key_hex": "bc7cbcb5636375fa1d82434d466724d92377f53b980695dd49d26d0ce12205a5"
+  },
+  "root_b": {
+    "type": "ed25519",
+    "public_key_hex": "65e8f9b0bc6eae124169f0576f97362d295a8cf5f770b45e14357ce647d33eec"
+  },
+  "root_c": {
+    "type": "ed25519",
+    "public_key_hex": "acf12b4acc1c660a8326aed34039efb728a5e496488240f50a932ab7aba51751"
+  }
+}

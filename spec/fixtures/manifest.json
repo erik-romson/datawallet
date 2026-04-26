@@ -1,0 +1,270 @@
+{
+  "spec_version": 1,
+  "generated_by": "spec/tools/gen.py",
+  "files": [
+    {
+      "path": "audit/chain-3-events.json",
+      "sha256": "73ad6ff9241822511bd858e689fc20fd6eb7e4c761fee25211346e8eb1095d76",
+      "category": "audit",
+      "description": "Audit chain: 3 events with expected hashes"
+    },
+    {
+      "path": "audit/chain-genesis.json",
+      "sha256": "4c690cae4032a021fff64d3a51c5c4cc92d460dacba31bd96afe4948aecdd470",
+      "category": "audit",
+      "description": "Audit chain genesis prev_hash"
+    },
+    {
+      "path": "auth/nonce-and-signature.json",
+      "sha256": "7455472849e21623d34658afcdba7a491ae75f14893f4cec600129b31f7d42f3",
+      "category": "auth",
+      "description": "Auth challenge signature vector"
+    },
+    {
+      "path": "auth/prefix.txt",
+      "sha256": "101c7f8c12a14fb3cb7c17689397a9cc9fa14c8bffe1272fd9577b26c18fbd60",
+      "category": "auth",
+      "description": "Auth prefix literal bytes"
+    },
+    {
+      "path": "directory/directory_meta.json",
+      "sha256": "e98dc32a682695cbde32eea53aa97c5a894838640a36b4433bd46e2ae059a0d5",
+      "category": "directory",
+      "description": "Directory generation metadata"
+    },
+    {
+      "path": "directory/invalid/one-of-two-sigs.cbor",
+      "sha256": "056ed0d0b701368cdc5252b52150c7b9ab5d88fb117335ed2f994012f2cd889f",
+      "category": "directory-invalid",
+      "description": "Below threshold: only 1 of 2 required signatures"
+    },
+    {
+      "path": "directory/invalid/tampered-public-key.cbor",
+      "sha256": "a1c11bc0046a61a61b31affc2a4b83e50d8434528aaddb518ce9d261eaa004e4",
+      "category": "directory-invalid",
+      "description": "Tampered public key in directory record"
+    },
+    {
+      "path": "directory/issuer-acme-active.cbor",
+      "sha256": "d7645f74a6d39e7e3388627915ce4245848b9a2deb1af768f637f2e0f19317fd",
+      "category": "directory",
+      "description": "Active issuer directory record: acme sign"
+    },
+    {
+      "path": "directory/pinned-root.cbor",
+      "sha256": "a3a44cbd5ccce94d54621c14c9708112436c7c72bf0d31f3dbccda9139b0239e",
+      "category": "directory",
+      "description": "Pinned trust root (3 roots, threshold 2)"
+    },
+    {
+      "path": "directory/verifier-alice-active.cbor",
+      "sha256": "db3244e547dd8e5ea2c4f8d5f9c8983b79dc82be45d2fde73bfee05bcabdf483",
+      "category": "directory",
+      "description": "Active verifier directory record: alice enc"
+    },
+    {
+      "path": "directory/verifier-alice-revoked.cbor",
+      "sha256": "48e868d70b996cba963153f8e05e0b94e47d5184828cb3fce3e8f007c093ccad",
+      "category": "directory",
+      "description": "Revoked verifier directory record: alice enc"
+    },
+    {
+      "path": "envelopes/allow-list-update-v2.cbor",
+      "sha256": "0b0bb3202c8a26e2a39e10b26e32d85ee29f0111311f2ca294a947a412501446",
+      "category": "envelope",
+      "description": "Valid envelope: allow-list update v2"
+    },
+    {
+      "path": "envelopes/allow-list-update-v2.json",
+      "sha256": "11c38530f129f9a1fc04949686f215c780b55f3ecaee0112adbef9b4c3fcbc19",
+      "category": "envelope",
+      "description": "JSON sidecar for allow-list-update-v2"
+    },
+    {
+      "path": "envelopes/allow-list-update-v2.signed",
+      "sha256": "40c21d340351845a48c26a9896bf179a2db599565187739bb0be20352776a418",
+      "category": "envelope",
+      "description": "Signed bytes for allow-list-update-v2"
+    },
+    {
+      "path": "envelopes/basic-1-recipient.cbor",
+      "sha256": "923fd447b09d01d4cfece2686f23817802e652f491f7e25c711ba596280248d1",
+      "category": "envelope",
+      "description": "Valid envelope: single recipient (alice)"
+    },
+    {
+      "path": "envelopes/basic-1-recipient.json",
+      "sha256": "3037d4a28a81c845e23297b0f15c0eac3af0064d230ee86e74b472d61806a2a0",
+      "category": "envelope",
+      "description": "JSON sidecar for basic-1-recipient"
+    },
+    {
+      "path": "envelopes/basic-1-recipient.signed",
+      "sha256": "0f9d81def208f5dc5e0de789fd6a0de8d8e262a3f1a84a04bf62addebe2d0dbe",
+      "category": "envelope",
+      "description": "Signed bytes for basic-1-recipient"
+    },
+    {
+      "path": "envelopes/envelope_meta.json",
+      "sha256": "3391ded8a36af23deaa5ad2ad6790a0082dd576b7107e82b2ffbc994374b0838",
+      "category": "envelope",
+      "description": "Envelope generation metadata"
+    },
+    {
+      "path": "envelopes/invalid/future-version.cbor",
+      "sha256": "db4f077ed4e9691a753ca924800ed8eb7ce2fdbf3f6a0594439d1048f2cb5fce",
+      "category": "envelope-invalid",
+      "description": "Future version (version=2)"
+    },
+    {
+      "path": "envelopes/invalid/non-canonical-cbor.cbor",
+      "sha256": "a253264f60705850cadcaa25ae0ea31f5ff2bf1b958c720dc983d66841a1e029",
+      "category": "envelope-invalid",
+      "description": "Non-canonical CBOR encoding"
+    },
+    {
+      "path": "envelopes/invalid/stale-key-id.cbor",
+      "sha256": "4e446d21073d53065af52528af169505a0532b06a4834a78abb8c45da628d876",
+      "category": "envelope-invalid",
+      "description": "created_at outside valid_from..valid_until"
+    },
+    {
+      "path": "envelopes/invalid/tampered-ciphertext.cbor",
+      "sha256": "80559d42120771fbaf93c9c11a5b1c61e378c5e719616631a47296731e9a07c8",
+      "category": "envelope-invalid",
+      "description": "Tampered ciphertext: hash mismatch"
+    },
+    {
+      "path": "envelopes/invalid/wrong-issuer-key.cbor",
+      "sha256": "9c298f8b971f36ac1916f53836db50d087c5722047d8b8481243344b46fb8cf9",
+      "category": "envelope-invalid",
+      "description": "Wrong issuer signing key"
+    },
+    {
+      "path": "envelopes/three-recipients.cbor",
+      "sha256": "196f6a1be321eab36b678c42e5f17b55c07f6ca2c3390fdb0ef1a663385cdbce",
+      "category": "envelope",
+      "description": "Valid envelope: three recipients"
+    },
+    {
+      "path": "envelopes/three-recipients.json",
+      "sha256": "27f45de400396134111da1fd80764c93b3ca079ce27e6813d50f72e6d551a13e",
+      "category": "envelope",
+      "description": "JSON sidecar for three-recipients"
+    },
+    {
+      "path": "envelopes/three-recipients.signed",
+      "sha256": "5e7e19193a37779de468eb66e5595338190f80d4af1e30cdc9a380a6abfde386",
+      "category": "envelope",
+      "description": "Signed bytes for three-recipients"
+    },
+    {
+      "path": "envelopes/unicode-description.cbor",
+      "sha256": "dec567fa18090f20930b6cdbf3d8b49092ca668076897e5cb168b6ae8305cd0f",
+      "category": "envelope",
+      "description": "Valid envelope: unicode description"
+    },
+    {
+      "path": "envelopes/unicode-description.json",
+      "sha256": "2023485a0227575b4dab99d2a3b37d01739aa7644779f24df2769b824e1f5988",
+      "category": "envelope",
+      "description": "JSON sidecar for unicode-description"
+    },
+    {
+      "path": "envelopes/unicode-description.signed",
+      "sha256": "1adc3b1f5cd253e2f200176ee7f49b29d29907225addfb7c6b89c136e63a0173",
+      "category": "envelope",
+      "description": "Signed bytes for unicode-description"
+    },
+    {
+      "path": "fingerprints/pubkey-to-fp.json",
+      "sha256": "793d2dff39d35d8e04f03f8c880cffea2051a6e251faa0f4f69890de62f28a17",
+      "category": "fingerprint",
+      "description": "Public key to fingerprint vectors"
+    },
+    {
+      "path": "inputs/handles.json",
+      "sha256": "ace44d4f223db9f243385ca43defcb9f10395ca66c81a3abf8ab05bc73a93bcd",
+      "category": "input",
+      "description": "Input file: inputs/handles.json"
+    },
+    {
+      "path": "inputs/keypairs.expected.json",
+      "sha256": "2b51391f9b8a675dd2b269c7c50a6372bff6938538db4de03d8539608133af3c",
+      "category": "input",
+      "description": "Expected derived public keys"
+    },
+    {
+      "path": "inputs/keypairs.json",
+      "sha256": "f35b3bb3c72e2cfd2675cf8b38adbac46869dbac3dd893f41134cead1e291ac3",
+      "category": "input",
+      "description": "Input file: inputs/keypairs.json"
+    },
+    {
+      "path": "inputs/passwords.expected.json",
+      "sha256": "89fa867d2237e6404789d378b7b954cc29caedddf2a27c8f6bb893f51edc1825",
+      "category": "input",
+      "description": "Expected KEK derivation results"
+    },
+    {
+      "path": "inputs/passwords.json",
+      "sha256": "e7a80470118985ecf9c5d877ea10ec2091a09646c1af1999b2e0a29586dc2b95",
+      "category": "input",
+      "description": "Input file: inputs/passwords.json"
+    },
+    {
+      "path": "inputs/plaintexts.json",
+      "sha256": "e2dfefdee12fb9968c9142b272df23e5389153a0d739457b30455e7bf9e511a9",
+      "category": "input",
+      "description": "Input file: inputs/plaintexts.json"
+    },
+    {
+      "path": "inputs/timestamps.json",
+      "sha256": "00ac4d0c6301906889d7be2664b550f12774159ea4a2d33e0d2280f542ea07f9",
+      "category": "input",
+      "description": "Input file: inputs/timestamps.json"
+    },
+    {
+      "path": "inputs/uuids.expected.json",
+      "sha256": "15ba2e1121b55e5d5e2f780af8c44ce2832a8769249eccdf043ee97a837a059f",
+      "category": "input",
+      "description": "Expected UUIDv7 results"
+    },
+    {
+      "path": "inputs/uuids.json",
+      "sha256": "11897942a9bf2c16b47dd0e6b54e0b33dc05ced8fd0c716b033ccaf88efa2d0f",
+      "category": "input",
+      "description": "Input file: inputs/uuids.json"
+    },
+    {
+      "path": "wrapped/auth_priv_alice.cbor",
+      "sha256": "673a3eb8cd5fa5f5e9e910d607512f1cc15cc0ccef657cf66897adfc20c82aaf",
+      "category": "wrapped",
+      "description": "Wrapped private key: auth_priv_alice"
+    },
+    {
+      "path": "wrapped/auth_priv_bob.cbor",
+      "sha256": "82ab17f2a399bf2d1eda891d5ea9f2a62aefe388d7f41f89677c3ebaad6017d9",
+      "category": "wrapped",
+      "description": "Wrapped private key: auth_priv_bob"
+    },
+    {
+      "path": "wrapped/enc_priv_alice.cbor",
+      "sha256": "2889372df03eb544fa107da3f9aed1b3c27efae99e253c6b945dce8afa77b724",
+      "category": "wrapped",
+      "description": "Wrapped private key: enc_priv_alice"
+    },
+    {
+      "path": "wrapped/enc_priv_bob.cbor",
+      "sha256": "f02a31cd2992009c3406f2181802efea69c47c78ac1040bdca745a49a292ad93",
+      "category": "wrapped",
+      "description": "Wrapped private key: enc_priv_bob"
+    },
+    {
+      "path": "wrapped/wrap_meta.json",
+      "sha256": "9edebe30fb178a2ac5ab6172d3aca5e3fbeb106dd370b97c42ffeacc14a27e4c",
+      "category": "wrapped",
+      "description": "Wrap metadata sidecar"
+    }
+  ]
+}
