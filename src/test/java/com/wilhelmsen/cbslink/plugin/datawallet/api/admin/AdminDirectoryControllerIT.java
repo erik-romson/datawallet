@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"test", "it"})
-@Import({PostgresTestcontainer.class, FixtureIssuerKeyResolver.class})
+@Import({PostgresTestcontainer.class, FixtureIssuerKeyResolver.class, AdminDirectoryControllerIT.ClockOverride.class})
 class AdminDirectoryControllerIT {
 
     /**
@@ -54,7 +54,7 @@ class AdminDirectoryControllerIT {
      * Fix the verifier clock to Jan 1, 2025 + 1 hour so the freshness check passes.
      */
     @TestConfiguration
-    static class ClockOverride {
+    public static class ClockOverride {
         // t_directory_issued = 1735689000000 ms → Jan 1, 2025
         private static final long FIXED_CLOCK_MS = 1735689000000L + 3_600_000L;
 
