@@ -28,7 +28,7 @@ if [ -z "$JAR" ]; then
 fi
 
 exec java \
-    -Dloader.main=com.wilhelmsen.cbslink.plugin.datawallet.cli.CliApplication \
+    -Dloader.main=com.erikromson.datawallet.cli.CliApplication \
     -Dspring.profiles.active=cli \
     -Dspring.main.banner-mode=off \
     -Dlogging.level.root=WARN \

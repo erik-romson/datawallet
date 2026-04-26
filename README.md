@@ -20,7 +20,7 @@ See `docs/specs/plan.md`, `docs/specs/api.md`, `docs/specs/crypto-formats.md`, a
 datawallet/
 ├── pom.xml                            # Maven single-module, Java 25, Spring Boot 3.x
 ├── bin/test-all.sh                    # mvn verify + (conditional) flutter test
-├── src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/
+├── src/main/java/com/erikromson/datawallet/
 │   ├── crypto/         envelope/      directory/    domain/
 │   ├── api/            security/      ratelimit/    audit/
 │   ├── purge/          cli/
@@ -154,7 +154,7 @@ The first launch shows the login screen. There is no in-app sign-up — verifier
 
 ## Conventions
 
-- **Java package:** `com.wilhelmsen.cbslink.plugin.datawallet`. Stable from step 01.
+- **Java package:** `com.erikromson.datawallet`. Stable from step 01.
 - **Wire format:** signed payloads are `application/cbor` (raw canonical bytes — server never re-serializes them); everything else is `application/json` with binary fields as base64url without padding.
 - **Time:** UTC milliseconds since epoch (`uint`) on the wire and in CBOR; `TIMESTAMPTZ` in Postgres.
 - **Crypto sources:** libsodium only. Never `java.security.SecureRandom` or `dart:math.Random` for keys, nonces, or session tokens.

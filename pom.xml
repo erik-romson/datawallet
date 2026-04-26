@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.wilhelmsen.cbslink.plugin</groupId>
+    <groupId>com.erikromson</groupId>
     <artifactId>datawallet</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -139,7 +139,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.wilhelmsen.cbslink.plugin.datawallet.DataWalletApplication</mainClass>
+                    <mainClass>com.erikromson.datawallet.DataWalletApplication</mainClass>
                 </configuration>
             </plugin>
             <plugin>

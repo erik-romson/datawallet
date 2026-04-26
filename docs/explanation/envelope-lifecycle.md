@@ -36,7 +36,7 @@ sequenceDiagram
 The issuer assembles the envelope structure: plaintext encrypted with a random
 content key, metadata (description, timestamp, recipient list), and the
 wrapped-key blobs. The codec lives in
-[`envelope/`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/envelope/),
+[`envelope/`](../../src/main/java/com/erikromson/datawallet/envelope/),
 with the Flutter equivalent at
 [`client/lib/src/envelope/`](../../client/lib/src/envelope/).
 
@@ -44,9 +44,9 @@ with the Flutter equivalent at
 
 The issuer serializes the envelope to canonical CBOR and signs the resulting
 bytes with the issuer's Ed25519 private key. The signing logic is in
-[`envelope/EnvelopeSigner.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/envelope/EnvelopeSigner.java),
+[`envelope/EnvelopeSigner.java`](../../src/main/java/com/erikromson/datawallet/envelope/EnvelopeSigner.java),
 backed by
-[`crypto/Ed25519.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/crypto/Ed25519.java).
+[`crypto/Ed25519.java`](../../src/main/java/com/erikromson/datawallet/crypto/Ed25519.java).
 The key itself comes from the issuer's directory record.
 
 ### Wrap
@@ -54,13 +54,13 @@ The key itself comes from the issuer's directory record.
 A random content key encrypts the plaintext (SecretBox). That content key is
 then sealed separately for each recipient using X25519 SealedBox, keyed to the
 recipient's public key from the directory. Wrapping uses
-[`crypto/SealedBox.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/crypto/SealedBox.java).
+[`crypto/SealedBox.java`](../../src/main/java/com/erikromson/datawallet/crypto/SealedBox.java).
 A recipient not listed in the envelope cannot recover the content key.
 
 ### Upload
 
 The issuer posts the signed bytes to
-[`api/entry/EntryController.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/entry/EntryController.java)
+[`api/entry/EntryController.java`](../../src/main/java/com/erikromson/datawallet/api/entry/EntryController.java)
 as `application/cbor`. The server authenticates the issuer, verifies the
 envelope signature against the issuer's directory record, and writes the raw
 bytes to Postgres without modification.
@@ -68,7 +68,7 @@ bytes to Postgres without modification.
 ### Fetch
 
 The verifier authenticates (opaque 32-byte bearer token), then calls
-[`api/shared/SharedController.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/shared/SharedController.java)
+[`api/shared/SharedController.java`](../../src/main/java/com/erikromson/datawallet/api/shared/SharedController.java)
 to list entry IDs visible to them, and then fetches a specific envelope by ID.
 The server returns the bytes it stored — no transformation occurs.
 
@@ -77,9 +77,9 @@ The server returns the bytes it stored — no transformation occurs.
 The verifier verifies the Ed25519 signature against the issuer's directory
 record, then uses their X25519 private key to unseal the wrapped content key,
 then decrypts the ciphertext. In Java this happens in
-[`envelope/EnvelopeVerifier.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/envelope/EnvelopeVerifier.java)
+[`envelope/EnvelopeVerifier.java`](../../src/main/java/com/erikromson/datawallet/envelope/EnvelopeVerifier.java)
 and the CLI commands under
-[`cli/`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/cli/).
+[`cli/`](../../src/main/java/com/erikromson/datawallet/cli/).
 In Flutter it happens in
 [`client/lib/src/envelope/envelope_verifier.dart`](../../client/lib/src/envelope/envelope_verifier.dart).
 

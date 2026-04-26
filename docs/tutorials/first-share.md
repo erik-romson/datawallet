@@ -114,7 +114,7 @@ What it touches:
 > an offline quorum (see [`specs/plan.md` § Root quorum][plan-root]).
 > `init-dev-trust` shortcuts that for local development.
 
-[init-cmd]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/cli/InitDevTrustCommand.java
+[init-cmd]: ../../src/main/java/com/erikromson/datawallet/cli/InitDevTrustCommand.java
 [hp-step1]: ../../bats/happy_path.bats#L40-L46
 [v1]: ../../src/main/resources/db/migration/V1__init.sql
 [v7]: ../../src/main/resources/db/migration/V7__pinned_root_history.sql
@@ -150,10 +150,10 @@ What happens:
 > Argon2id parameters, the salt, and the verifier's public keys.
 > Threat-model details: [`specs/plan.md` § Verifier auth][plan-vauth].
 
-[vc]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierController.java
+[vc]: ../../src/main/java/com/erikromson/datawallet/api/verifier/VerifierController.java
 [hp-step2]: ../../bats/happy_path.bats#L48-L54
-[rnd]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/crypto/Random.java
-[argon]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/crypto/Argon2id.java
+[rnd]: ../../src/main/java/com/erikromson/datawallet/crypto/Random.java
+[argon]: ../../src/main/java/com/erikromson/datawallet/crypto/Argon2id.java
 [api-vreg]: ../specs/api.md
 [plan-vauth]: ../specs/plan.md
 
@@ -211,8 +211,8 @@ record, and inserts.
 [hp-step3]: ../../bats/happy_path.bats#L56-L67
 [claude]: ../../CLAUDE.md
 [fixtures]: ../../spec/fixtures/
-[ec]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/entry/EntryController.java
-[x509]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/security/X509IssuerPrincipalResolver.java
+[ec]: ../../src/main/java/com/erikromson/datawallet/api/entry/EntryController.java
+[x509]: ../../src/main/java/com/erikromson/datawallet/security/X509IssuerPrincipalResolver.java
 
 ## Step 4 — Verifier: list shared entries
 
@@ -249,10 +249,10 @@ That's the [UUIDv7][uuid] entry id from
 matters for the cursor-based listing.
 
 [hp-step4]: ../../bats/happy_path.bats#L69-L77
-[auth]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/auth/AuthController.java
-[sc]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/shared/SharedController.java
+[auth]: ../../src/main/java/com/erikromson/datawallet/api/auth/AuthController.java
+[sc]: ../../src/main/java/com/erikromson/datawallet/api/shared/SharedController.java
 [uuid]: https://www.rfc-editor.org/rfc/rfc9562
-[uuidv7]: ../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/crypto/UuidV7.java
+[uuidv7]: ../../src/main/java/com/erikromson/datawallet/crypto/UuidV7.java
 
 ## Step 5 — Verifier: open the entry
 

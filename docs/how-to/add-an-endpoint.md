@@ -6,22 +6,22 @@ existing controller as your template rather than building from scratch.
 
 ## Pick an exemplar
 
-[`VerifierController.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierController.java)
+[`VerifierController.java`](../../src/main/java/com/erikromson/datawallet/api/verifier/VerifierController.java)
 is a good starting point. It shows the full pattern:
 
 - `@RestController` + `@RequestMapping` at the class level
-  ([lines 32–34](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierController.java#L32-L34))
+  ([lines 32–34](../../src/main/java/com/erikromson/datawallet/api/verifier/VerifierController.java#L32-L34))
 - Constructor injection of `AuditService` and a `@Value` property
-  ([lines 43–49](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierController.java#L43-L49))
+  ([lines 43–49](../../src/main/java/com/erikromson/datawallet/api/verifier/VerifierController.java#L43-L49))
 - A POST handler consuming and producing `application/json`
-  ([lines 51–92](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierController.java#L51-L92))
+  ([lines 51–92](../../src/main/java/com/erikromson/datawallet/api/verifier/VerifierController.java#L51-L92))
 - An `auditService.recordEvent(...)` call before returning
-  ([lines 85–88](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierController.java#L85-L88))
+  ([lines 85–88](../../src/main/java/com/erikromson/datawallet/api/verifier/VerifierController.java#L85-L88))
 
 Its integration test lives at
-[`VerifierControllerIT.java`](../../src/test/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierControllerIT.java)
+[`VerifierControllerIT.java`](../../src/test/java/com/erikromson/datawallet/api/verifier/VerifierControllerIT.java)
 and shows the `@SpringBootTest` + `@Import(PostgresTestcontainer.class)` harness
-([lines 25–29](../../src/test/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierControllerIT.java#L25-L29)).
+([lines 25–29](../../src/test/java/com/erikromson/datawallet/api/verifier/VerifierControllerIT.java#L25-L29)).
 
 ## Steps
 
@@ -32,7 +32,7 @@ and shows the `@SpringBootTest` + `@Import(PostgresTestcontainer.class)` harness
 2. **Co-locate DTOs** in the same `api/<area>/` package — request bodies,
    response bodies, and validation helpers all live next to the controller,
    not in a shared package. See
-   [`VerifierRegistrationDto.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierRegistrationDto.java)
+   [`VerifierRegistrationDto.java`](../../src/main/java/com/erikromson/datawallet/api/verifier/VerifierRegistrationDto.java)
    as an example.
 
 3. **Wire `AuditService` via the interface.** Inject it through the

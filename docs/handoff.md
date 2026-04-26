@@ -26,21 +26,21 @@ The Data Wallet v1 pilot is a complete end-to-end encrypted envelope management 
 
 ### Java Backend (Spring Boot)
 - **Root:** `pom.xml` — Maven single-module, Java 25, Spring Boot 3.x, libsodium via lazysodium-java
-- **Crypto:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/crypto/`
+- **Crypto:** `src/main/java/com/erikromson/datawallet/crypto/`
   - Canonical CBOR codec (`CanonicalCborMapper.java`)
   - Libsodium wrappers: Ed25519, X25519, SecretBox, SealedBox, SHA-256, Argon2id, UuidV7, Fingerprint
-- **Data model:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/domain/`
+- **Data model:** `src/main/java/com/erikromson/datawallet/domain/`
   - JPA entities: `VerifierEntity`, `SessionEntity`, `EntryEntity`, `EntryRecipientEntity`, `DirectoryRecordEntity`, `AuthChallengeEntity`, `AuthLockoutEntity`, `RateLimitEntity`
   - Spring Data repositories for all entities
-- **Envelope codec:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/envelope/`
+- **Envelope codec:** `src/main/java/com/erikromson/datawallet/envelope/`
   - `EnvelopeCodec` — CBOR ↔ SharedEnvelope
   - `EnvelopeSigner`, `EnvelopeVerifier` — Ed25519 signature + ciphertext-hash check
   - `RecipientWrapping` — per-verifier data-key wrapping
-- **Directory & root quorum:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/directory/`
+- **Directory & root quorum:** `src/main/java/com/erikromson/datawallet/directory/`
   - `DirectoryRecordCodec` — CBOR codec for issuer signing keys
   - `DirectoryRecordVerifier` — validates record against pinned root quorum
   - `IssuerKeyResolverImpl` — fetches + caches issuer keys from directory
-- **HTTP API:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/`
+- **HTTP API:** `src/main/java/com/erikromson/datawallet/api/`
   - **Auth:** `AuthController` — challenge, verify, logout endpoints
   - **Verifier:** `VerifierController` — registration, login-blob, key rotation, password change
   - **Shared entries:** `SharedController` — list (paginated), detail (CBOR fetch)
@@ -48,21 +48,21 @@ The Data Wallet v1 pilot is a complete end-to-end encrypted envelope management 
   - **Directory:** `DirectoryQueryController` — public directory queries
   - **Admin:** `AdminAuditController`, `AdminDirectoryController`, `AdminRootUpdateController` — operator endpoints
   - **Error handling:** `ApiErrorAdvice` — global exception → JSON error responses
-- **Security:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/security/`
+- **Security:** `src/main/java/com/erikromson/datawallet/security/`
   - `SecurityConfig`, `IssuerSecurityConfig`, `AdminSecurityConfig` — Spring Security configuration
   - `BearerAuthFilter` — extracts session token, populates `SessionPrincipal`
   - `SecurityHeadersFilter`, `CorsConfig` — headers + CORS
   - `X509IssuerPrincipalResolver` — issuer mTLS principal (production)
   - `IssuerPrincipalResolver` (interface) — allows test injection
-- **Rate limiting & lockout:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/ratelimit/`
+- **Rate limiting & lockout:** `src/main/java/com/erikromson/datawallet/ratelimit/`
   - `RateLimitInterceptor` — token-bucket rate limiting per endpoint + handler
   - `AuthLockoutService` — locks verifier after N failed auth attempts
-- **Audit:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/audit/`
+- **Audit:** `src/main/java/com/erikromson/datawallet/audit/`
   - `HashChainAuditService` — SHA-256 hash-chain append-only log (production)
   - `NoopAuditService` — stub (used in early steps)
-- **Purge job:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/purge/`
+- **Purge job:** `src/main/java/com/erikromson/datawallet/purge/`
   - `SupersededPurgeJob` — `@Scheduled` job that removes old verifier key rotations
-- **CLI:** `src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/cli/`
+- **CLI:** `src/main/java/com/erikromson/datawallet/cli/`
   - `CliApplication` — entry point for offline tools
   - `GenRootCommand` — generate pinned root quorum (EdDSA keypairs, M-of-N threshold)
   - `SignDirectoryRecordCommand` — sign a directory record with trust-root keys
@@ -448,7 +448,7 @@ Each verifier has a single active enc key and single active auth key. Parallel k
 1. **Commit untracked files** — fix the git history (issue 7.1)
 2. **Generate trust-root offline**
    ```bash
-   java -cp datawallet-server.jar com.wilhelmsen.cbslink.plugin.datawallet.cli.CliApplication \
+   java -cp datawallet-server.jar com.erikromson.datawallet.cli.CliApplication \
      gen-root --count 3 --threshold 2 --output pinned-root.cbor
    ```
 3. **Publish root and directory** — sign directory records with offline root keys

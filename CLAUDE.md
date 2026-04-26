@@ -31,7 +31,7 @@ Integration tests use Testcontainers; Docker must be running.
 
 - Java 25 (pinned via `pom.xml`). The SessionStart hook auto-switches via SDKMAN.
 - Spring Boot 3.x, libsodium via `lazysodium-java`.
-- Package root: `com.wilhelmsen.cbslink.plugin.datawallet`. Do not move it.
+- Package root: `com.erikromson.datawallet`. Do not move it.
 
 ## Flutter environment
 

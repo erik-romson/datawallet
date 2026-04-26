@@ -27,12 +27,12 @@ flowchart TD
 
 The issuer creates envelopes and uploads them to the server. In this
 implementation the issuer is the Java CLI (entry point:
-[`cli/`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/cli/)).
+[`cli/`](../../src/main/java/com/erikromson/datawallet/cli/)).
 In production the issuer authenticates via mutual TLS; the server resolves
 the issuer identity through
-[`security/IssuerPrincipalResolver.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/security/IssuerPrincipalResolver.java)
+[`security/IssuerPrincipalResolver.java`](../../src/main/java/com/erikromson/datawallet/security/IssuerPrincipalResolver.java)
 (interface) and
-[`security/X509IssuerPrincipalResolver.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/security/X509IssuerPrincipalResolver.java)
+[`security/X509IssuerPrincipalResolver.java`](../../src/main/java/com/erikromson/datawallet/security/X509IssuerPrincipalResolver.java)
 (production implementation).
 
 ### Verifier
@@ -41,23 +41,23 @@ The verifier fetches envelopes addressed to them and decrypts the content
 locally. The Flutter client lives under
 [`client/lib/src/`](../../client/lib/src/); the Java CLI also implements the
 verifier role via
-[`cli/VerifierFetchCommand.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/cli/VerifierFetchCommand.java).
+[`cli/VerifierFetchCommand.java`](../../src/main/java/com/erikromson/datawallet/cli/VerifierFetchCommand.java).
 The server endpoint the verifier talks to is
-[`api/verifier/VerifierController.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/verifier/VerifierController.java).
+[`api/verifier/VerifierController.java`](../../src/main/java/com/erikromson/datawallet/api/verifier/VerifierController.java).
 
 ### Server
 
 The server is a Spring Boot application. It authenticates callers, validates
 envelope signatures against the directory, and persists the opaque CBOR bytes.
 It never decrypts content. All HTTP controllers live under
-[`api/`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/api/).
+[`api/`](../../src/main/java/com/erikromson/datawallet/api/).
 
 ### Directory and pinned root
 
 The directory holds signed records for every issuer and verifier. Records are
 signed by the root keypair; the server verifies all directory entries against
 the pinned root before accepting them. The directory logic lives in
-[`directory/`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/directory/);
+[`directory/`](../../src/main/java/com/erikromson/datawallet/directory/);
 the schema is established in migration
 [`V1__init.sql`](../../src/main/resources/db/migration/V1__init.sql) and the
 pinned-root history table is added in
@@ -70,7 +70,7 @@ access control (bearer-token auth, rate limiting, audit logging). The server
 is **not** trusted with plaintext: it cannot read envelope content, cannot
 mint directory entries (only the offline root quorum can sign them), and
 cannot impersonate an issuer or verifier. The audit hash chain
-([`audit/HashChainAuditService.java`](../../src/main/java/com/wilhelmsen/cbslink/plugin/datawallet/audit/HashChainAuditService.java))
+([`audit/HashChainAuditService.java`](../../src/main/java/com/erikromson/datawallet/audit/HashChainAuditService.java))
 records every share event in a tamper-evident log, but even a compromised
 server cannot retroactively decrypt historical envelopes. For the full threat
 model see [`trust-model.md`](trust-model.md).
