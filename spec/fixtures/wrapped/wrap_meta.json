@@ -1,0 +1,22 @@
+[
+  {
+    "name": "enc_priv_alice",
+    "nonce_hex": "f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1f1",
+    "plaintext_key_len": 32
+  },
+  {
+    "name": "auth_priv_alice",
+    "nonce_hex": "f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2f2",
+    "plaintext_key_len": 64
+  },
+  {
+    "name": "enc_priv_bob",
+    "nonce_hex": "f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3",
+    "plaintext_key_len": 32
+  },
+  {
+    "name": "auth_priv_bob",
+    "nonce_hex": "f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4f4",
+    "plaintext_key_len": 64
+  }
+]

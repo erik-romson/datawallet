@@ -1,0 +1,41 @@
+{
+  "basic-1-recipient": {
+    "data_key_hex": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "ciphertext_nonce_hex": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "plaintext_key": "basic",
+    "issuer_signing_key": "acme_sign",
+    "recipients": [
+      "alice_enc"
+    ]
+  },
+  "three-recipients": {
+    "data_key_hex": "d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1d1",
+    "ciphertext_nonce_hex": "e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1e1",
+    "plaintext_key": "three_recipients",
+    "issuer_signing_key": "acme_sign",
+    "recipients": [
+      "alice_enc",
+      "bob_enc",
+      "charlie_enc"
+    ]
+  },
+  "allow-list-update-v2": {
+    "data_key_hex": "d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2d2",
+    "ciphertext_nonce_hex": "e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2e2",
+    "plaintext_key": "v2_update",
+    "issuer_signing_key": "acme_sign",
+    "recipients": [
+      "alice_enc",
+      "bob_enc"
+    ]
+  },
+  "unicode-description": {
+    "data_key_hex": "d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3",
+    "ciphertext_nonce_hex": "e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3e3",
+    "plaintext_key": "unicode",
+    "issuer_signing_key": "acme_sign",
+    "recipients": [
+      "alice_enc"
+    ]
+  }
+}

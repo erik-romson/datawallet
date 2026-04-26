@@ -1,0 +1,30 @@
+{
+  "pinned_root": {
+    "threshold": 2,
+    "root_keys": [
+      "root_a",
+      "root_b",
+      "root_c"
+    ]
+  },
+  "verifier_ids": {
+    "alice": "c8ea8c7380fca25e295df2067404b036",
+    "bob": "f7a32e82b02dca75d90dbdc18b825174",
+    "charlie": "c8f5cdfc3c451cd2bfaa128bd9e06d77"
+  },
+  "issuer_id_hex": "01941f297c0070509050505050505050",
+  "key_ids": {
+    "alice_enc": "72cd6e8422c407fb6d098690f1130b7d",
+    "alice_auth": "75877bb41d393b5fb8455ce60ecd8dda",
+    "bob_enc": "648aa5c579fb30f38af744d97d6ec840",
+    "bob_auth": "9f4fb68f3e1dac82202f9aa581ce0bbf",
+    "charlie_enc": "e802086ad6a1e16b78352ad7296d2aab",
+    "acme_sign": "f849d67325facf04177bc663b2dc5440",
+    "wrong_issuer": "4bb06f8e4e3a7715d201d573d0aa4237",
+    "root_a": "52fe6094743bfd4f9be4321d98adc7e2",
+    "root_b": "ce09bf69797db85e32328576dd1899c7",
+    "root_c": "4bf469546db4c45f0df5035610b66aa2"
+  },
+  "acme_signing_key_valid_from": 1735600000000,
+  "acme_signing_key_valid_until": 1767225600000
+}

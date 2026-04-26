@@ -1,0 +1,8 @@
+{
+  "nonce_hex": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "prefix_hex": "6461746177616c6c65742d617574682d763100",
+  "expected_signed_bytes_hex": "6461746177616c6c65742d617574682d763100aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "signer": "alice_auth",
+  "signer_public_key_hex": "8139770ea87d175f56a35466c34c7ecccb8d8a91b4ee37a25df60f5b8fc9b394",
+  "expected_sig_hex": "95597c77f288a1a8514bdcdd6600137c36939e33e54769b4ce1739e47dbd448b975f7d3e548ec8c7d2d594df191244b675d1c112b41496fb8dee3dfd95734803"
+}

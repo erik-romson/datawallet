@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "entry_id": "0194244fd80072428242424242424242",
+  "issuer_id": "01941f297c0070509050505050505050",
+  "signature": "951db75d53be24fb7ee3f047e765100f46f2f0855b5508f778608564a36633178d79ec729a609a749a8b0e7bd7c084ff94a4a95de146f5cac13246f4487dcc01",
+  "ciphertext": "7a8fc1b376ac3ad4f157d28aecfa43bb4dd82b3d8e98209bcb9f2716f8b30992f039bac21fff1e82921bab3f916a12e022222f50eb87d983f3ed20",
+  "created_at": 1735776000000,
+  "description": "Basic test credential",
+  "issuer_label": "Acme Corp",
+  "ciphertext_alg": "xsalsa20poly1305",
+  "ciphertext_hash": "fbd599d8ea856bd63c09e342c0410d303238b8a35fd2a54e4e460b169ec17ab0",
+  "ciphertext_nonce": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  "recipient_wrappings": [
+    {
+      "verifier_id": "c8ea8c7380fca25e295df2067404b036",
+      "verifier_key_id": "72cd6e8422c407fb6d098690f1130b7d",
+      "wrapped_data_key": "18d659921364bec1074b7476291348cc0ed5f05f8b731ad31635a90809812d032f4aec7fd2adafd718fc17c1850045cb69440c9a34fd7d7d220bf1b949aa79903b628077b5ca3edc57287669157e551b"
+    }
+  ],
+  "issuer_signing_key_id": "f849d67325facf04177bc663b2dc5440"
+}

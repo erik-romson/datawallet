@@ -1,0 +1,2 @@
+pynacl
+cbor2
