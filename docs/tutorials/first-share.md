@@ -28,6 +28,32 @@ If you're unsure, the BATS suite checks all of this for you in
 > **Diagram:** the five-step happy path. Each step is one CLI invocation
 > in [`bats/happy_path.bats`][hp].
 
+The actors:
+
+- **Operator (CLI).** Bootstraps the trust chain in dev: generates the
+  root quorum keypair, signs the dev directory, and seeds the dev
+  issuer identity via `init-dev-trust`. In production this role is an
+  offline quorum (see [`specs/plan.md` § Root quorum][plan-root]) —
+  the operator never runs against a prod database.
+- **Issuer (CLI).** Authors signed envelopes. Holds an Ed25519 signing
+  key whose public half is published in a directory record signed by
+  the root. In dev the issuer identity is created by `init-dev-trust`
+  and lives in `--state-dir`; in prod the issuer's signing key lives
+  on its own host and authenticates to the server with mTLS.
+- **Verifier (CLI / Flutter).** The end recipient. Owns the X25519
+  decryption key and Ed25519 auth key, both wrapped under an
+  Argon2id-derived KEK on the verifier's device. The CLI plays this
+  role in BATS; in real use it's the Flutter app.
+- **Server.** Stateless Spring Boot service. Authenticates issuers
+  (mTLS) and verifiers (bearer tokens after challenge/response),
+  validates signatures against directory records, and stores the
+  signed envelope bytes verbatim. Never sees plaintext or any private
+  key.
+- **Postgres.** Holds the pinned root, directory records, verifier
+  records, entries, recipients, and the audit hash chain. The server
+  treats stored envelope bytes as opaque `BYTEA` — wire bytes equal
+  signed bytes equal DB bytes.
+
 ```mermaid
 sequenceDiagram
     autonumber
