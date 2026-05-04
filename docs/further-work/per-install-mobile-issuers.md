@@ -80,7 +80,7 @@ sequenceDiagram
     Ica->>Ica: verify attestation,<br/>sign per-install directory record
     Ica->>Srv: POST /v1/admin/directory (issuer record)
     Srv->>DB: INSERT directory_records type=issuer
-    Ica-->>App: enrollment receipt + token-mint URL
+    Ica-->>App: enrollment receipt = signed install directory record (CBOR)<br/>+ token-mint URL
 
     Note over App,Ver: per share — plaintext lives only in process memory
     App->>App: read user input,<br/>SecretBox(plaintext, K),<br/>SealedBox(K → verifier_pubkey),<br/>build CBOR envelope,<br/>unwrap signing key,<br/>Ed25519.sign,<br/>zero plaintext + signing key
@@ -110,6 +110,129 @@ Two pieces do all the work:
    private-key wrapping the codebase already uses for Argon2id-derived
    KEKs (`crypto/SecretBox.java`), but the KEK handle is held by the
    OS instead of being derived from a passphrase.
+
+### What a directory record is, what gets signed, and how it's used
+
+The diagram above mentions "directory record" eight times without
+saying what one *is*. A directory record is the small piece of data
+that **binds an identity (UUID) to a signing public key under the
+trust anchor's signature**. Functionally, it is the Data Wallet
+equivalent of an X.509 leaf or intermediate certificate. See
+[`docs/terminology.md`][term] § Canonical CBOR directory record for
+the standalone definition.
+
+**What's inside one.** A logical record carries:
+
+- `record_type` — `issuer`, `verifier`, or (under this proposal)
+  `intermediate`
+- `subject_id` — UUID of the entity being identified (per-install
+  UUID for mobile issuers)
+- `key_id` — 16-byte identifier of *this specific key version* for
+  the subject; rotation mints a new `key_id`
+- `pubkey` — the Ed25519 public key bytes the subject will sign with
+- `valid_from`, `valid_until`, `issued_at` — UTC ms since epoch
+- `parent_key_id` (proposed) — `NULL` if signed directly by the
+  pinned root quorum, otherwise the `key_id` of the intermediate
+  whose pubkey verifies this record's signature
+
+The byte layout is fixed in
+[`docs/specs/crypto-formats.md`][cf]; cross-stack equality is
+locked by [`spec/fixtures/`][fixtures].
+
+**What gets signed.** The above fields are encoded as **canonical
+CBOR**, producing a deterministic byte sequence. Those bytes are
+the message that the signer (root quorum, or an intermediate)
+signs with Ed25519. The output is one or more signatures appended
+into a signed-record envelope. The signed-record envelope is
+itself canonical CBOR.
+
+The hard rule (`CLAUDE.md`): **wire bytes = signed bytes = DB
+`BYTEA` bytes.** Nothing in the system ever rebuilds the CBOR from
+fields and re-signs — once the bytes exist, they flow through the
+system as a single immutable blob.
+
+```mermaid
+flowchart LR
+    fields[Logical fields<br/>type, subject_id, key_id,<br/>pubkey, valid_from, ...]
+    fields -- canonical CBOR encode --> bytes[Signed bytes<br/>deterministic]
+    bytes -- Ed25519.sign by root quorum<br/>or intermediate --> signed[Signed record<br/>bytes + signatures, all CBOR]
+    signed -- POST /v1/admin/directory<br/>application/cbor --> srv[Data Wallet server]
+    srv -- INSERT verbatim --> db[(directory_records.signed_record BYTEA)]
+```
+
+**What lands in the DB.** [`directory_records`][v1] schema:
+
+| Column | Holds |
+|---|---|
+| `record_type` | `issuer` / `verifier` / `intermediate` |
+| `subject_id` | the UUID being identified |
+| `key_id` | 16-byte key version |
+| `status` | `active` / `revoked` |
+| `valid_from`, `valid_until`, `issued_at` | timestamps |
+| `root_key_id` | which signer's `key_id` produced the signature on this row |
+| `parent_key_id` (proposed) | `NULL` for v1 single-level records; non-NULL when signed by an intermediate |
+| `signed_record` | **the signed CBOR bytes, verbatim** |
+
+The non-`signed_record` columns are *redundant indexes* into the
+canonical bytes — they exist so the server can answer "find the
+active issuer record for subject X" without re-parsing every blob.
+The bytes in `signed_record` remain authoritative; the indexed
+columns are populated at insert time from a parsed view of the same
+bytes.
+
+Primary key is `(record_type, subject_id, key_id)`. Rotating a
+subject's signing key inserts a new row, never updates an existing
+one — old records remain present so historical envelopes referring
+to old keys can still verify.
+
+What is **not** in the DB:
+
+- The subject's **private signing key** — only on the subject's
+  device (or, for the intermediate, in its HSM).
+- The subject's **mTLS client cert / private key** — trusted by the
+  TLS-terminating proxy, not stored in Postgres.
+
+**How it's used afterwards.** Three operations consult directory
+records on every relevant request:
+
+1. **Envelope ingest** ([`EntryIngestService.java:43`][eis]). When
+   an issuer uploads a signed envelope:
+   - The server reads the `subject_id` claimed by the envelope.
+   - Looks up the `directory_records` row for that subject + active
+     `key_id`.
+   - Pulls the issuer's pubkey from `signed_record`.
+   - Verifies the envelope's Ed25519 signature against that pubkey.
+   - Verifies the directory record's own signature against either
+     the pinned root quorum (single-level) or its parent
+     intermediate (chain — proposed in this doc).
+   - If both verify, accepts the envelope. If anything fails, 401.
+
+2. **Verifier resolution.** When an envelope is decrypted by a
+   verifier, the wrapped recipient blob points at a verifier
+   `key_id`. The verifier's directory record provides the X25519
+   public key matching that `key_id`, and confirms it's currently
+   `active` and unexpired.
+
+3. **Trust-chain validation.** The proposed
+   [`DirectoryRecordVerifier`][drv] walks `parent_key_id` to its
+   ancestor: if the ancestor is the pinned root quorum, accept; if
+   not, reject. Each link in the chain is verified by re-running
+   `Ed25519.verify(parent.pubkey, child.signed_record,
+   child.signatures)` — the same operation, regardless of whether
+   the parent is the root or an intermediate.
+
+The directory record is therefore the **only** piece of state the
+server treats as cryptographic ground truth about identities.
+Everything else — sessions, audit entries, entry recipients — refers
+back to a directory record by `(subject_id, key_id)` to answer "do
+I trust this signature".
+
+[term]: ../terminology.md
+[cf]: ../specs/crypto-formats.md
+[fixtures]: ../../spec/fixtures/
+[v1]: ../../src/main/resources/db/migration/V1__init.sql
+[eis]: ../../src/main/java/com/erikromson/datawallet/api/entry/EntryIngestService.java
+[drv]: ../../src/main/java/com/erikromson/datawallet/directory/DirectoryRecordVerifier.java
 
 ## How v1 hard rules are preserved
 
@@ -224,6 +347,69 @@ This service authenticates to the Data Wallet server via admin mTLS
 just like any human operator running `sign-directory` in v1. From
 the server's point of view, it is *one admin client* publishing
 many records; that's why no v1 admin code needs to change.
+
+#### What the intermediate persists across restarts
+
+The intermediate must verify the install's PoP signature on every
+bearer-mint request, which means it needs the install's pubkey at
+mint time — and bearer mints can happen weeks or months after
+enrollment, across intermediate restarts. There are three honest
+places that lookup data could live:
+
+1. **Mirror every install pubkey in a local DB.** The intermediate
+   becomes a stateful service with its own Postgres. Two sources of
+   truth (its mirror vs. `directory_records`) can drift on
+   revocation. Operationally the heaviest option.
+2. **Read from the Data Wallet server on demand** via
+   `GET /v1/directory/issuers/<install_uuid>`, parse the pubkey out
+   of `signed_record`, cache with a short TTL. Single source of
+   truth, but couples the intermediate's bearer-mint hot path to the
+   Data Wallet server's availability.
+3. **Have the install present its own signed directory record on
+   every bearer-mint request.** Self-contained credential, exactly
+   like a JWT presenter holding its own JWK. The intermediate
+   verifies the record's signature against its own (HSM-resident)
+   pubkey, extracts the pubkey from the record, then verifies the
+   PoP. No external dependencies, no shared state to operate.
+
+**Choose option 3.** This is why the bootstrap diagram makes the
+enrollment receipt the **signed install directory record itself**
+(plus the token-mint URL): the install carries its own credential
+and re-presents it every time it asks for a bearer.
+
+The intermediate therefore persists exactly **one** piece of state
+across restarts:
+
+| State | Why | Size |
+|---|---|---|
+| **Revocation deny-list** of `(install_uuid, key_id)` pairs whose directory records are currently `revoked` | The signed_record the install carries says nothing about its current status; the intermediate must reject mint requests for revoked installs even if the carried record is otherwise valid | UUIDs only — orders of magnitude smaller than mirroring full pubkeys; fits in memory comfortably even at 10⁷ installs |
+
+The deny-list is:
+
+- Held in memory for fast lookup on every bearer mint.
+- Snapshotted to disk (or S3/GCS) every minute for restart recovery.
+- **Rebuilt at startup** by querying the Data Wallet server for all
+  `directory_records` rows where `record_type='issuer'` and
+  `status='revoked'`. If that rebuild fails, the intermediate
+  fail-closes — refuses to mint until reconciliation succeeds.
+- Kept bounded by directory-record `valid_until` windows: revoked
+  records past their expiry can be dropped from the deny-list since
+  any bearer presenting an expired record is rejected by the
+  signed_record validity check anyway.
+
+What the intermediate explicitly does **not** persist:
+
+- Per-install pubkeys (carried by the install).
+- Per-install metadata (in the signed record).
+- Bearer history / nonce log beyond the brief in-memory PoP-nonce
+  challenge window.
+- Audit chain (the Data Wallet server's `audit_log` is authoritative).
+
+This keeps the intermediate horizontally scalable: any replica can
+serve any install behind a load balancer with no shared session
+state, only the deny-list — which is small, cacheable, and trivially
+synchronisable across replicas via a periodic pull from the Data
+Wallet server's revoked-rows view.
 
 #### Three distinct layers — do not conflate
 

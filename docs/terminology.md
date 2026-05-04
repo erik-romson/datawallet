@@ -60,6 +60,17 @@ lands in the database.
 [perinstall]: further-work/per-install-mobile-issuers.md
 [specfix]: specs/fixtures.md
 
+## Directory record
+
+The signed binding `(subject_id, key_id) → pubkey + validity`,
+stored verbatim as canonical CBOR in the `directory_records` table.
+Issuers, verifiers, and (proposed) intermediates each have one or
+more. The signature comes from the [pinned root quorum](#pinned-root-quorum)
+or from an intermediate that the quorum has blessed.
+
+For the full byte format and signing rules see
+[Canonical CBOR directory record](#canonical-cbor-directory-record).
+
 ## HSM-backed
 
 Shorthand for *"the private key lives in a hardware security module
