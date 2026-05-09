@@ -307,7 +307,11 @@ the intermediate, payload includes:
 - `aud = urn:datawallet:server`
 - `exp` short (e.g. 5 minutes)
 - `cnf.jkt` JWK thumbprint of the install's Ed25519 pubkey
-- `nonce` proof-of-possession (server-rotating to prevent replay)
+
+Replay defence is bound by `cnf.jkt` (a stolen bearer cannot
+sign a new envelope without the install's private key) and
+short `exp` (≤ 5 min); see "Residual risks" for the explicit
+threat model.
 
 The resolver verifies the JWT signature against the active
 intermediate's pubkey from `directory_records`, parses the
@@ -324,8 +328,9 @@ Selection happens at config time:
 datawallet:
   security:
     issuer-mtls: false
-    issuer-bearer: true
-    issuer-bearer-audience: urn:datawallet:server
+    issuer-bearer:
+      enabled: true
+      audience: urn:datawallet:server
 ```
 
 The mTLS path remains for admin endpoints and for backend issuers
@@ -566,6 +571,13 @@ intermediate compromise.
 
 ## Residual risks (be explicit)
 
+- **Bearer replay within `exp` window.** A bearer captured off
+  the wire (broken TLS) can be replayed up to its `exp` time.
+  The server's `(entry_id, version)` PK turns replays into 409
+  Conflict, so no entries are duplicated, but the audit trail
+  records the attempt. We rely on TLS + `cnf.jkt` + short `exp`
+  instead of a server-rotating nonce. If the threat model later
+  requires it, add a `bearer_nonces` consumed-on-use table.
 - **The intermediate is a high-value online target.** If it is
   compromised, the attacker can mint issuer records that look
   legitimate to the server until the root quorum performs a

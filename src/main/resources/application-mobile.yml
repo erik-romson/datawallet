@@ -1,0 +1,6 @@
+datawallet:
+  security:
+    issuer-mtls: false
+    issuer-bearer:
+      enabled: true
+      audience: urn:datawallet:server
