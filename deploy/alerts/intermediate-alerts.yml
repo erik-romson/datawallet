@@ -1,0 +1,120 @@
+# Prometheus alerting rules for datawallet-intermediate.
+#
+# Metric names are defined in MetricsConfig (step 04 observability surface):
+#   enroll_results_total{result}           — enroll endpoint outcomes
+#   token_results_total{result}            — token mint outcomes
+#   attestation_results_total{result}      — attestation check outcomes
+#   revoke_results_total{result}           — revocation publish outcomes
+#   denylist_age_seconds                   — seconds since last successful refresh
+#   denylist_refresh_failures_total        — cumulative refresh failures
+#   denylist_size                          — current deny-list entry count
+#
+# Load with:
+#   rule_files:
+#     - /etc/prometheus/rules/intermediate-alerts.yml
+#
+# The scrape job must be named 'datawallet-intermediate'.
+
+groups:
+  - name: datawallet-intermediate
+    rules:
+
+      # -----------------------------------------------------------------------
+      # Intermediate service availability
+      # -----------------------------------------------------------------------
+
+      - alert: IntermediateDown
+        expr: up{job="datawallet-intermediate"} == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "datawallet-intermediate is down"
+          description: >
+            The intermediate service /healthz has been unreachable for more
+            than 2 minutes. No new enrolments or bearer tokens can be minted.
+            Check the service, its GCP KMS connectivity, and the deny-list
+            refresh endpoint (DATAWALLET_SERVER_URL).
+
+      # -----------------------------------------------------------------------
+      # Deny-list staleness
+      # Fires when the cached deny list is older than max-staleness-seconds.
+      # At that point the service returns 503 on every /token request
+      # (fail-closed) — which is intentional, but operators must investigate.
+      # -----------------------------------------------------------------------
+
+      - alert: DenyListStale
+        expr: denylist_age_seconds{job="datawallet-intermediate"} > 600
+        for: 0m
+        labels:
+          severity: page
+        annotations:
+          summary: "Intermediate deny-list exceeds max-staleness-seconds"
+          description: >
+            denylist_age_seconds={{ $value }}s > 600s (max-staleness-seconds).
+            The service is now returning 503 on all /token requests (fail-closed).
+            Investigate connectivity from the intermediate to the server's
+            /v1/admin/directory/revoked-issuers endpoint and the admin mTLS cert.
+
+      # -----------------------------------------------------------------------
+      # Deny-list refresh failures (intermittent — before staleness cap)
+      # Fires when refreshes are failing frequently enough to risk future staleness.
+      # -----------------------------------------------------------------------
+
+      - alert: DenyListRefreshFailing
+        expr: rate(denylist_refresh_failures_total{job="datawallet-intermediate"}[1h]) > 3
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Intermediate deny-list refresh failing intermittently"
+          description: >
+            Deny-list refresh failure rate is {{ $value | humanize }}/hr
+            (threshold: 3/hr). If this continues, the list will go stale
+            within max-staleness-seconds (600s) and token minting will fail
+            closed. Investigate the admin client connectivity and credentials.
+
+      # -----------------------------------------------------------------------
+      # Attestation rejection rate
+      # A sustained spike may indicate an adversarial campaign or a broken
+      # attestation key rotation.  Tune the threshold after observing baseline.
+      # -----------------------------------------------------------------------
+
+      - alert: AttestationRejectRateHigh
+        expr: >
+          (
+            rate(attestation_results_total{job="datawallet-intermediate", result="rejected"}[5m])
+            /
+            rate(attestation_results_total{job="datawallet-intermediate"}[5m])
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Intermediate attestation rejection rate > 5%"
+          description: >
+            Attestation rejection ratio is {{ $value | humanizePercentage }}
+            over the last 5 minutes (threshold: 5% for 10 min).
+            This may indicate a surge of invalid installs, a broken Play
+            Integrity / App Attest configuration, or an active credential
+            stuffing attempt.  Check attestation_results_total label breakdown.
+
+      # -----------------------------------------------------------------------
+      # Enroll publish failures
+      # The intermediate failed to persist a signed record on the server —
+      # the mobile install is left without a valid directory record.
+      # -----------------------------------------------------------------------
+
+      - alert: EnrollPublishFailing
+        expr: rate(enroll_results_total{job="datawallet-intermediate", result="publish_failed"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: "Intermediate enroll publish failures"
+          description: >
+            enroll_results_total{result="publish_failed"} rate is
+            {{ $value | humanize }}/s (threshold: 0.1/min = ~0.0017/s).
+            The intermediate cannot reach or write to the server's
+            /v1/admin/directory endpoint.  Check admin mTLS cert validity
+            and DATAWALLET_SERVER_URL reachability.

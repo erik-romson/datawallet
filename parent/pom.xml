@@ -23,6 +23,7 @@
         <jna.version>5.18.1</jna.version>
         <testcontainers.version>2.0.5</testcontainers.version>
         <picocli.version>4.7.6</picocli.version>
+        <google-cloud-kms.version>2.95.0</google-cloud-kms.version>
     </properties>
 
     <dependencyManagement>
@@ -48,6 +49,11 @@
                 <groupId>info.picocli</groupId>
                 <artifactId>picocli-spring-boot-starter</artifactId>
                 <version>${picocli.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>google-cloud-kms</artifactId>
+                <version>${google-cloud-kms.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

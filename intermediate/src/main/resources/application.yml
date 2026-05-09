@@ -22,7 +22,15 @@ datawallet:
   intermediate:
     server-url: ${DATAWALLET_SERVER_URL:http://localhost:8443}
     signer:
-      seed-hex: ${INTERMEDIATE_SIGNER_SEED_HEX}
+      # 'soft' (default, dev/test) or 'kms' (production with GCP Cloud KMS)
+      mode: ${INTERMEDIATE_SIGNER_MODE:soft}
+      # Required when mode=soft; ignored when mode=kms
+      seed-hex: ${INTERMEDIATE_SIGNER_SEED_HEX:}
+      kms:
+        # Required when mode=kms; full CryptoKeyVersion resource name,
+        # e.g. projects/P/locations/L/keyRings/R/cryptoKeys/K/cryptoKeyVersions/V
+        # Algorithm must be EC_SIGN_ED25519.
+        key-version-name: ${INTERMEDIATE_KMS_KEY_VERSION_NAME:}
     bearer:
       audience: urn:datawallet:server
     attestation:
@@ -36,3 +44,14 @@ datawallet:
     denylist:
       refresh-interval-seconds: 60
       max-staleness-seconds: 600
+    ratelimit:
+      enroll:
+        # Burst capacity for per-IP token bucket on POST /enroll
+        per-ip-capacity: 5
+        # Sustained rate: tokens refilled per minute per IP
+        per-ip-refill-per-minute: 10
+      token:
+        # Burst capacity for per-IP token bucket on POST /token
+        per-ip-capacity: 20
+        # Sustained rate: tokens refilled per minute per IP
+        per-ip-refill-per-minute: 60
