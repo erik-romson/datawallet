@@ -189,6 +189,36 @@
       "description": "Wrong issuer signing key"
     },
     {
+      "path": "envelopes/mobile-built/mobile_meta.json",
+      "sha256": "d1f2311e985695a59c9c0ee4ee398f4ae2dabf74a0ebd343ffb6d6b34c3a774e",
+      "category": "envelope",
+      "description": "Mobile-built envelope generation metadata"
+    },
+    {
+      "path": "envelopes/mobile-built/single-recipient.cbor",
+      "sha256": "80fc29eeaeafb14f68f396c130ea079d7569867846b434c9b8829d7fc66d6e17",
+      "category": "envelope",
+      "description": "Mobile-built envelope: single recipient (alice)"
+    },
+    {
+      "path": "envelopes/mobile-built/single-recipient.json",
+      "sha256": "44b17ace27a92f47416e33fbc8296d464440410d7e79d011f60d2bcba7249560",
+      "category": "envelope",
+      "description": "JSON sidecar for mobile-built single-recipient"
+    },
+    {
+      "path": "envelopes/mobile-built/single-recipient.signed",
+      "sha256": "6d50c3922626c7172e6795a6948b5ee652fdd80101e755483f93df505d4e7118",
+      "category": "envelope",
+      "description": "Signed bytes for mobile-built single-recipient"
+    },
+    {
+      "path": "envelopes/server-side-verified/single-recipient.json",
+      "sha256": "5ed43d52d67a68de11c5a686604114a4aeb96361459ab460ef3a47a31c7ccc01",
+      "category": "envelope",
+      "description": "Server-side verified: expected unwrap for mobile single-recipient"
+    },
+    {
       "path": "envelopes/three-recipients.cbor",
       "sha256": "196f6a1be321eab36b678c42e5f17b55c07f6ca2c3390fdb0ef1a663385cdbce",
       "category": "envelope",
@@ -262,7 +292,7 @@
     },
     {
       "path": "inputs/plaintexts.json",
-      "sha256": "e2dfefdee12fb9968c9142b272df23e5389153a0d739457b30455e7bf9e511a9",
+      "sha256": "c080d6a2f47a24be4b35e271deb55278c879948c0294c7900005ffebc3a56b0d",
       "category": "input",
       "description": "Input file: inputs/plaintexts.json"
     },
@@ -274,13 +304,13 @@
     },
     {
       "path": "inputs/uuids.expected.json",
-      "sha256": "15ba2e1121b55e5d5e2f780af8c44ce2832a8769249eccdf043ee97a837a059f",
+      "sha256": "4db5df02a29054e1f6b6f90eec64a6fe988cc163771210cb85ef3336158fcee9",
       "category": "input",
       "description": "Expected UUIDv7 results"
     },
     {
       "path": "inputs/uuids.json",
-      "sha256": "11897942a9bf2c16b47dd0e6b54e0b33dc05ced8fd0c716b033ccaf88efa2d0f",
+      "sha256": "7f63cfcc4d74e3b8c7fa6b8f37c2c1e53b066be90752757b211a8621592ff873",
       "category": "input",
       "description": "Input file: inputs/uuids.json"
     },

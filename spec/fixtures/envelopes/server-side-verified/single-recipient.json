@@ -1,0 +1,8 @@
+{
+  "single-recipient": {
+    "expected_plaintext": "Mobile-issued credential from install device.",
+    "data_key_hex": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "issuer_signing_key": "mobile_install_sign",
+    "issuer_id_hex": "bb9c6b6e7ffa2131869d72640c78bcb5"
+  }
+}

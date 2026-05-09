@@ -16,5 +16,11 @@
     "ts_ms": 1735689600000,
     "rand_hex": "505050505050505050505050",
     "expected_hex": "01941f297c0070509050505050505050"
+  },
+  {
+    "name": "entry_mobile",
+    "ts_ms": 1735862400000,
+    "rand_hex": "6d6d6d6d6d6d6d6d6d6d6d6d",
+    "expected_hex": "0194297634007d6dad6d6d6d6d6d6d6d"
   }
 ]

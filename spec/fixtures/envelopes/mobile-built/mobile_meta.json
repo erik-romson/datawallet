@@ -1,0 +1,12 @@
+{
+  "single-recipient": {
+    "data_key_hex": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+    "ciphertext_nonce_hex": "e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4",
+    "plaintext_key": "mobile",
+    "issuer_signing_key": "mobile_install_sign",
+    "issuer_id_hex": "bb9c6b6e7ffa2131869d72640c78bcb5",
+    "recipients": [
+      "alice_enc"
+    ]
+  }
+}

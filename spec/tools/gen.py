@@ -1089,6 +1089,76 @@ def generate(out_dir: Path):
     write_json(out_dir / "envelopes" / "envelope_meta.json", envelope_meta)
     track("envelopes/envelope_meta.json", "envelope", "Envelope generation metadata")
 
+    # ── Mobile-built envelopes ─────────────────────────────────────
+
+    data_key_mobile = hex_to_bytes("d4" * 32)
+    ct_nonce_mobile = hex_to_bytes("e4" * 24)
+    eph_seed_mobile_alice = hex_to_bytes("b8" * 32)
+
+    ct_mobile, ct_hash_mobile = encrypt_plaintext(plaintexts["mobile"], data_key_mobile, ct_nonce_mobile)
+    wrapped_dk_mobile_alice = wrap_data_key_for_recipient(
+        data_key_mobile, keys["alice_enc"]["public"], eph_seed_mobile_alice)
+    mobile_wrappings = [{
+        "verifier_id": alice_verifier_id,
+        "verifier_key_id": key_ids["alice_enc"],
+        "wrapped_data_key": wrapped_dk_mobile_alice,
+    }]
+
+    mobile_final, mobile_signed, mobile_sig = build_envelope(
+        version=1,
+        entry_id=uuid_map["entry_mobile"],
+        issuer_id=mobile_install_subject_id,
+        issuer_label="Mobile Install",
+        issuer_signing_key_id=key_ids["mobile_install_sign"],
+        created_at=timestamps["t_envelope_v2"],
+        description="Mobile-issued credential",
+        ciphertext_alg="xsalsa20poly1305",
+        ciphertext_nonce=ct_nonce_mobile,
+        ciphertext=ct_mobile,
+        ciphertext_hash=ct_hash_mobile,
+        recipient_wrappings=mobile_wrappings,
+        signing_key=keys["mobile_install_sign"]["private"],
+    )
+    write_binary(out_dir / "envelopes" / "mobile-built" / "single-recipient.cbor", mobile_final)
+    write_binary(out_dir / "envelopes" / "mobile-built" / "single-recipient.signed", mobile_signed)
+    mobile_envelope_map = cbor2.loads(mobile_final)
+    write_json(out_dir / "envelopes" / "mobile-built" / "single-recipient.json",
+               envelope_to_json_sidecar(mobile_envelope_map))
+    track("envelopes/mobile-built/single-recipient.cbor", "envelope",
+          "Mobile-built envelope: single recipient (alice)")
+    track("envelopes/mobile-built/single-recipient.signed", "envelope",
+          "Signed bytes for mobile-built single-recipient")
+    track("envelopes/mobile-built/single-recipient.json", "envelope",
+          "JSON sidecar for mobile-built single-recipient")
+
+    mobile_meta = {
+        "single-recipient": {
+            "data_key_hex": bytes_to_hex(data_key_mobile),
+            "ciphertext_nonce_hex": bytes_to_hex(ct_nonce_mobile),
+            "plaintext_key": "mobile",
+            "issuer_signing_key": "mobile_install_sign",
+            "issuer_id_hex": bytes_to_hex(mobile_install_subject_id),
+            "recipients": ["alice_enc"],
+        },
+    }
+    write_json(out_dir / "envelopes" / "mobile-built" / "mobile_meta.json", mobile_meta)
+    track("envelopes/mobile-built/mobile_meta.json", "envelope",
+          "Mobile-built envelope generation metadata")
+
+    # server-side-verified: expected unwrap output for the mobile envelope
+    verified_meta = {
+        "single-recipient": {
+            "expected_plaintext": plaintexts["mobile"],
+            "data_key_hex": bytes_to_hex(data_key_mobile),
+            "issuer_signing_key": "mobile_install_sign",
+            "issuer_id_hex": bytes_to_hex(mobile_install_subject_id),
+        },
+    }
+    write_json(out_dir / "envelopes" / "server-side-verified" / "single-recipient.json",
+               verified_meta)
+    track("envelopes/server-side-verified/single-recipient.json", "envelope",
+          "Server-side verified: expected unwrap for mobile single-recipient")
+
     # Directory record metadata
     dir_meta = {
         "pinned_root": {

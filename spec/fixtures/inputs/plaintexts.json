@@ -2,5 +2,6 @@
   "basic": "Hello, this is a test credential for Alice.",
   "three_recipients": "Shared secret for multiple recipients.",
   "v2_update": "Updated credential content v2.",
-  "unicode": "Cr\u00e9dential avec des caract\u00e8res sp\u00e9ciaux: \u00e9\u00e0\u00fc\u00f1\u00f6"
+  "unicode": "Cr\u00e9dential avec des caract\u00e8res sp\u00e9ciaux: \u00e9\u00e0\u00fc\u00f1\u00f6",
+  "mobile": "Mobile-issued credential from install device."
 }
