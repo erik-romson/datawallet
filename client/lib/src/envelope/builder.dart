@@ -114,6 +114,66 @@ class EnvelopeBuilder {
     }
   }
 
+  /// Async variant of [build] — delegates signing to [signFn] so the caller
+  /// can use [Keystore.sign] without exposing raw key bytes.
+  ///
+  /// Zeros the data key and plaintext bytes before returning.
+  Future<BuiltEnvelope> buildAsync({
+    required String plaintextContent,
+    required Uint8List entryId,
+    required Uint8List issuerId,
+    required String issuerLabel,
+    required Uint8List issuerSigningKeyId,
+    required Future<Uint8List> Function(Uint8List) signFn,
+    required int createdAt,
+    required String description,
+    required List<RecipientDescriptor> recipients,
+  }) async {
+    final plaintextBytes = Uint8List.fromList(utf8.encode(plaintextContent));
+    final dataKey = Rand.bytes(_sodium, 32);
+    final nonce = Rand.bytes(_sodium, 24);
+
+    try {
+      final ciphertext =
+          SecretBoxCrypto.seal(_sodium, plaintextBytes, nonce, dataKey);
+      final ciphertextHash = Sha256.hash(ciphertext);
+
+      final wrappings = recipients.map((r) {
+        final wrapped = SealedBox.seal(_sodium, dataKey, r.encPublicKey);
+        return RecipientWrapping(
+          verifierId: r.verifierId,
+          verifierKeyId: r.verifierKeyId,
+          wrappedDataKey: wrapped,
+        );
+      }).toList();
+
+      final unsigned = SharedEnvelope(
+        version: 1,
+        entryId: entryId,
+        issuerId: issuerId,
+        issuerLabel: issuerLabel,
+        issuerSigningKeyId: issuerSigningKeyId,
+        createdAt: createdAt,
+        description: description,
+        ciphertextAlg: 'xsalsa20poly1305',
+        ciphertextNonce: nonce,
+        ciphertext: ciphertext,
+        ciphertextHash: ciphertextHash,
+        recipientWrappings: wrappings,
+      );
+
+      final signedBytes = await _signer.signAsync(unsigned, signFn);
+
+      return BuiltEnvelope(
+        signedEnvelopeBytes: signedBytes,
+        ciphertextHash: ciphertextHash,
+      );
+    } finally {
+      _zeroBytes(dataKey);
+      _zeroBytes(plaintextBytes);
+    }
+  }
+
   /// Deterministic build for fixture round-trips: caller supplies data key,
   /// nonce, and pre-wrapped recipient data keys.
   BuiltEnvelope buildDeterministic({

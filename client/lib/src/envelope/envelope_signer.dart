@@ -24,4 +24,19 @@ class EnvelopeSigner {
     final sig = Ed25519.signDetached(_sodium, issuerEd25519SecretKey, signedBytes);
     return _codec.encode(unsigned.withSignature(sig));
   }
+
+  /// Async variant — delegates signing to [signFn] (e.g. [Keystore.sign]).
+  ///
+  /// Throws [ArgumentError] if [unsigned] already carries a signature.
+  Future<Uint8List> signAsync(
+    SharedEnvelope unsigned,
+    Future<Uint8List> Function(Uint8List) signFn,
+  ) async {
+    if (unsigned.signature != null) {
+      throw ArgumentError('Envelope already has a signature');
+    }
+    final signedBytes = _codec.signedBytesOf(unsigned);
+    final sig = await signFn(signedBytes);
+    return _codec.encode(unsigned.withSignature(sig));
+  }
 }
