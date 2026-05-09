@@ -33,4 +33,7 @@ public interface DirectoryRecordRepository
     @Query("UPDATE DirectoryRecordEntity d SET d.pendingRevocation = true WHERE d.subjectId = :subjectId AND d.keyId = :keyId")
     void markPendingRevocationBySubjectIdAndKeyId(@Param("subjectId") UUID subjectId,
                                                    @Param("keyId") byte[] keyId);
+
+    @Query("SELECT d FROM DirectoryRecordEntity d WHERE d.recordType = 'issuer' AND d.status = 'revoked'")
+    List<DirectoryRecordEntity> findRevokedIssuers();
 }

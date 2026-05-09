@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: datawallet-intermediate
+
+server:
+  port: 8444
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+datawallet:
+  intermediate:
+    server-url: ${DATAWALLET_SERVER_URL:http://localhost:8443}
+    signer:
+      seed-hex: ${INTERMEDIATE_SIGNER_SEED_HEX}
+    bearer:
+      audience: urn:datawallet:server
+    attestation:
+      mode: stub
+      play-integrity:
+        package-name: ""
+        decryption-key-secret: ""
+      app-attest:
+        team-id: ""
+        bundle-id: ""
+    denylist:
+      refresh-interval-seconds: 60
+      max-staleness-seconds: 600

@@ -52,6 +52,9 @@ public class DirectoryRecordEntity {
     @Column(name = "pending_revocation", nullable = false)
     private boolean pendingRevocation;
 
+    @Column(name = "revoked_at")
+    private Instant revokedAt;
+
     protected DirectoryRecordEntity() {}
 
     public DirectoryRecordEntity(String recordType, UUID subjectId, byte[] keyId,
@@ -81,6 +84,7 @@ public class DirectoryRecordEntity {
     public byte[] getParentKeyId() { return parentKeyId; }
     public byte[] getSignedRecord() { return signedRecord; }
     public boolean isPendingRevocation() { return pendingRevocation; }
+    public Instant getRevokedAt() { return revokedAt; }
 
     public void setStatus(String status) { this.status = status; }
     public void setValidFrom(Instant validFrom) { this.validFrom = validFrom; }
@@ -92,6 +96,7 @@ public class DirectoryRecordEntity {
     public void setPendingRevocation(boolean pendingRevocation) {
         this.pendingRevocation = pendingRevocation;
     }
+    public void setRevokedAt(Instant revokedAt) { this.revokedAt = revokedAt; }
 
     public static class DirectoryRecordId implements Serializable {
         private String recordType;

@@ -86,8 +86,11 @@ public class AdminDirectoryController {
             current.setRootKeyId(rootKeyId);
             current.setParentKeyId(parentKeyId);
             current.setSignedRecord(body);
-            if ("revoked".equals(record.status()) && current.isPendingRevocation()) {
-                current.setPendingRevocation(false);
+            if ("revoked".equals(record.status())) {
+                current.setRevokedAt(Instant.now());
+                if (current.isPendingRevocation()) {
+                    current.setPendingRevocation(false);
+                }
             }
         } else {
             DirectoryRecordEntity entity = new DirectoryRecordEntity(

@@ -44,6 +44,7 @@ public class AdminSecurityConfig {
                 .x509(x509 -> x509.subjectPrincipalRegex("(.*?)"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/v1/admin/directory").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/v1/admin/directory/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/v1/admin/root-update").authenticated()
                         .requestMatchers(HttpMethod.GET, "/v1/admin/audit").authenticated()
                         .anyRequest().denyAll()
