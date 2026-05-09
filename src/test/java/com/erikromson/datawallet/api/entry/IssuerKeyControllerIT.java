@@ -108,7 +108,7 @@ class IssuerKeyControllerIT {
                 Instant.now().minusSeconds(3600),
                 Instant.now().plusSeconds(3600),
                 Instant.now(),
-                new byte[16],
+                new byte[16], null,
                 new byte[32]
         );
         directoryRecordRepository.save(entity);

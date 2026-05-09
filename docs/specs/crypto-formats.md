@@ -180,17 +180,19 @@ wrapped_data_key_i = crypto_box_seal(data_key, verifier_i_enc_pub)
 
 ```cddl
 DirectoryRecord = {
-    "version"        => 1,
-    "record_type"    => "verifier" / "issuer",
-    "subject_id"     => bstr .size 16,
-    "key_id"         => bstr .size 16,
-    "public_key"     => bstr .size 32,
-    "key_use"        => "enc" / "auth" / "sign",
-    "status"         => "active" / "superseded" / "revoked",
-    "valid_from"     => uint,                          ; ms since epoch
-    "valid_until"    => uint,                          ; ms since epoch
-    "issued_at"      => uint,                          ; ms since epoch
-    "root_signatures" => [+ RootSignature]
+    "version"           => 1,
+    "record_type"       => "verifier" / "issuer" / "intermediate",
+    "subject_id"        => bstr .size 16,
+    "key_id"            => bstr .size 16,
+    "public_key"        => bstr .size 32,
+    "key_use"           => "enc" / "auth" / "sign",
+    "status"            => "active" / "superseded" / "revoked",
+    "valid_from"        => uint,                          ; ms since epoch
+    "valid_until"       => uint,                          ; ms since epoch
+    "issued_at"         => uint,                          ; ms since epoch
+    ? "parent_key_id"   => bstr .size 16,                ; iff signed by an intermediate
+    ? "root_signatures" => [+ RootSignature],             ; iff parent_key_id absent
+    ? "parent_signature" => bstr .size 64                 ; iff parent_key_id present
 }
 
 RootSignature = {
@@ -199,7 +201,16 @@ RootSignature = {
 }
 ```
 
-`signed_bytes_directory = canonical_cbor(record without "root_signatures")`. Signed independently by ≥ M of N pinned root keys (see §7).
+XOR invariant: exactly one of `root_signatures` / `parent_signature` is present.
+`parent_signature` present iff `parent_key_id` present.
+`signed_bytes_directory = canonical_cbor(record without "root_signatures" and without "parent_signature")`.
+
+Root-signed records (no `parent_key_id`, no `parent_signature`, `root_signatures` present) are signed independently by ≥ M of N pinned root keys (see §7).
+Intermediate-signed records (`parent_key_id` present, `parent_signature` present, no `root_signatures`) carry a single Ed25519 signature from the named intermediate key.
+
+Chain depth is capped at 2 (root → intermediate → leaf). Records that would require deeper recursion are rejected.
+
+Cross-stack chain fixtures: `spec/fixtures/directory/intermediate-record/`.
 
 Freshness: clients reject `now() > issued_at + 7d`. Server republishes records at least every 3.5 days (`max_age / 2`).
 

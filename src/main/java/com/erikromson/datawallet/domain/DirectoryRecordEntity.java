@@ -40,8 +40,11 @@ public class DirectoryRecordEntity {
     @Column(name = "issued_at", nullable = false)
     private Instant issuedAt;
 
-    @Column(name = "root_key_id", nullable = false)
+    @Column(name = "root_key_id", nullable = true)
     private byte[] rootKeyId;
+
+    @Column(name = "parent_key_id", nullable = true)
+    private byte[] parentKeyId;
 
     @Column(name = "signed_record", nullable = false)
     private byte[] signedRecord;
@@ -53,7 +56,8 @@ public class DirectoryRecordEntity {
 
     public DirectoryRecordEntity(String recordType, UUID subjectId, byte[] keyId,
                                   String status, Instant validFrom, Instant validUntil,
-                                  Instant issuedAt, byte[] rootKeyId, byte[] signedRecord) {
+                                  Instant issuedAt, byte[] rootKeyId, byte[] parentKeyId,
+                                  byte[] signedRecord) {
         this.recordType = recordType;
         this.subjectId = subjectId;
         this.keyId = keyId;
@@ -62,6 +66,7 @@ public class DirectoryRecordEntity {
         this.validUntil = validUntil;
         this.issuedAt = issuedAt;
         this.rootKeyId = rootKeyId;
+        this.parentKeyId = parentKeyId;
         this.signedRecord = signedRecord;
     }
 
@@ -73,6 +78,7 @@ public class DirectoryRecordEntity {
     public Instant getValidUntil() { return validUntil; }
     public Instant getIssuedAt() { return issuedAt; }
     public byte[] getRootKeyId() { return rootKeyId; }
+    public byte[] getParentKeyId() { return parentKeyId; }
     public byte[] getSignedRecord() { return signedRecord; }
     public boolean isPendingRevocation() { return pendingRevocation; }
 
@@ -81,6 +87,7 @@ public class DirectoryRecordEntity {
     public void setValidUntil(Instant validUntil) { this.validUntil = validUntil; }
     public void setIssuedAt(Instant issuedAt) { this.issuedAt = issuedAt; }
     public void setRootKeyId(byte[] rootKeyId) { this.rootKeyId = rootKeyId; }
+    public void setParentKeyId(byte[] parentKeyId) { this.parentKeyId = parentKeyId; }
     public void setSignedRecord(byte[] signedRecord) { this.signedRecord = signedRecord; }
     public void setPendingRevocation(boolean pendingRevocation) {
         this.pendingRevocation = pendingRevocation;

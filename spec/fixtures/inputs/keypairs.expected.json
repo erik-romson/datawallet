@@ -38,5 +38,17 @@
   "root_c": {
     "type": "ed25519",
     "public_key_hex": "acf12b4acc1c660a8326aed34039efb728a5e496488240f50a932ab7aba51751"
+  },
+  "intermediate_sign": {
+    "type": "ed25519",
+    "public_key_hex": "acdcc8494d458f44a7aaac1d6a84ec624daee88436db2ae26e67ba645a106228"
+  },
+  "mobile_install_sign": {
+    "type": "ed25519",
+    "public_key_hex": "b7282fe472f97641c17097821a537874aaaa532645ad34dbd5987331a4e73f8d"
+  },
+  "wrong_intermediate": {
+    "type": "ed25519",
+    "public_key_hex": "d404bc44565aedbb899150e5b0b3b32b9441bf0cb7884c33130da8dbc27dd2cf"
   }
 }

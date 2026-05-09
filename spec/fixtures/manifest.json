@@ -28,9 +28,57 @@
     },
     {
       "path": "directory/directory_meta.json",
-      "sha256": "e98dc32a682695cbde32eea53aa97c5a894838640a36b4433bd46e2ae059a0d5",
+      "sha256": "dedf0707d12c18e4750b56048aa997c27af47886d2d0118ab412b1bc66eeae8e",
       "category": "directory",
       "description": "Directory generation metadata"
+    },
+    {
+      "path": "directory/intermediate-record/both-signature-containers.cbor",
+      "sha256": "decd182db14710d67f43780648faec23f11099566411d0ba8fd03fa934d4def3",
+      "category": "directory",
+      "description": "Record with both root_signatures and parent_signature (XOR violation, rejected)"
+    },
+    {
+      "path": "directory/intermediate-record/chain-too-deep.cbor",
+      "sha256": "a0ed94154976742d038bb0dc45f79ec6289381bead21f7da7bf43e5bd22d4493",
+      "category": "directory",
+      "description": "Issuer chain too deep: leaf -> intermediate -> intermediate (rejected)"
+    },
+    {
+      "path": "directory/intermediate-record/deep-intermediate.cbor",
+      "sha256": "6073f1f0e7f10e1be51d1aa286a89b596ce82dbdd14e1fcb6c51ecf24ec647fb",
+      "category": "directory",
+      "description": "Intermediate record that is itself parent-signed (used in chain-too-deep test)"
+    },
+    {
+      "path": "directory/intermediate-record/intermediate.cbor",
+      "sha256": "512b1d670a5a52c1b53480677999c7f9f6259eeb4afa67a406d33d34addc1def",
+      "category": "directory",
+      "description": "Root-signed intermediate directory record"
+    },
+    {
+      "path": "directory/intermediate-record/intermediate_meta.json",
+      "sha256": "aab1459598c7349c582c6206e38cce16033f20b0ca38cd09a933840ecf922b23",
+      "category": "directory",
+      "description": "Intermediate-record chain fixture metadata"
+    },
+    {
+      "path": "directory/intermediate-record/issuer-under-intermediate.cbor",
+      "sha256": "f6f55067e28ed553c7ffd385b80dca3c459667904fc9aaae35aab5f6e1dac1c7",
+      "category": "directory",
+      "description": "Issuer record signed by intermediate (valid chain)"
+    },
+    {
+      "path": "directory/intermediate-record/no-signature-container.cbor",
+      "sha256": "e3c2eb6fa5755d43f14706a2d2b9ca6e25216f30c723a256aff0f381c2f71aa7",
+      "category": "directory",
+      "description": "Record with no signature container (rejected)"
+    },
+    {
+      "path": "directory/intermediate-record/wrong-parent-signature.cbor",
+      "sha256": "3577f6855bf334e32634f215707ff008b4df464d6dd8e5778da5d99f45f9e8e6",
+      "category": "directory",
+      "description": "Issuer with wrong parent signature (rejected)"
     },
     {
       "path": "directory/invalid/one-of-two-sigs.cbor",
@@ -190,13 +238,13 @@
     },
     {
       "path": "inputs/keypairs.expected.json",
-      "sha256": "2b51391f9b8a675dd2b269c7c50a6372bff6938538db4de03d8539608133af3c",
+      "sha256": "aa261303325c10f2e81294314d515e4922b2b08b554cced81dec7cd596842443",
       "category": "input",
       "description": "Expected derived public keys"
     },
     {
       "path": "inputs/keypairs.json",
-      "sha256": "f35b3bb3c72e2cfd2675cf8b38adbac46869dbac3dd893f41134cead1e291ac3",
+      "sha256": "ddd4c8814858210c9c680c4f027035784358b4d8e283e55a4f8e5d4f3bafc838",
       "category": "input",
       "description": "Input file: inputs/keypairs.json"
     },

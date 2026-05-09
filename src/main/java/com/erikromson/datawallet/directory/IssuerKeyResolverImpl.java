@@ -59,12 +59,19 @@ public class IssuerKeyResolverImpl implements IssuerKeyResolver {
     }
 
     private DirectoryKeyView resolveOnce(UUID issuerId, byte[] keyId) {
+        DirectoryRecordVerifier.ParentLookup parentLookup = parentKeyId ->
+                repository.findByKeyId(parentKeyId).stream()
+                        .map(DirectoryRecordEntity::getSignedRecord)
+                        .findFirst()
+                        .orElseThrow(() -> new DirectoryRejection.ParentNotFound(
+                                "No directory record found for parent_key_id"));
+
         List<DirectoryRecordEntity> entities = repository.findBySubjectIdAndKeyId(issuerId, keyId);
         DirectoryKeyView bestView = null;
         for (DirectoryRecordEntity entity : entities) {
             DirectoryRecord record;
             try {
-                record = verifier.verify(entity.getSignedRecord(), pinnedRootHolder.get());
+                record = verifier.verify(entity.getSignedRecord(), pinnedRootHolder.get(), parentLookup);
             } catch (DirectoryRejection e) {
                 continue;
             }

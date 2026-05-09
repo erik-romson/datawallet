@@ -13,5 +13,7 @@ public record DirectoryRecord(
         long validFrom,
         long validUntil,
         long issuedAt,
-        List<RootSignature> rootSignatures
+        List<RootSignature> rootSignatures,  // non-null, empty when parent-signed
+        byte[] parentKeyId,                   // null when root-signed
+        byte[] parentSignature               // null when root-signed
 ) {}

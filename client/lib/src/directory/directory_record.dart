@@ -8,19 +8,21 @@ class RootSignature {
   const RootSignature({required this.rootKeyId, required this.signature});
 }
 
-/// A directory record describing a verifier or issuer key.
+/// A directory record describing a verifier, issuer, or intermediate key.
 class DirectoryRecord {
   final int version;
-  final String recordType;   // "verifier" | "issuer"
-  final Uint8List subjectId; // 16 bytes
-  final Uint8List keyId;     // 16 bytes
-  final Uint8List publicKey; // 32 bytes (Ed25519 or X25519)
-  final String keyUse;       // "enc" | "auth" | "sign"
-  final String status;       // "active" | "superseded" | "revoked"
-  final int validFrom;       // Unix epoch ms (inclusive)
-  final int validUntil;      // Unix epoch ms (exclusive)
-  final int issuedAt;        // Unix epoch ms
-  final List<RootSignature> rootSignatures;
+  final String recordType;      // "verifier" | "issuer" | "intermediate"
+  final Uint8List subjectId;    // 16 bytes
+  final Uint8List keyId;        // 16 bytes
+  final Uint8List publicKey;    // 32 bytes (Ed25519 or X25519)
+  final String keyUse;          // "enc" | "auth" | "sign"
+  final String status;          // "active" | "superseded" | "revoked"
+  final int validFrom;          // Unix epoch ms (inclusive)
+  final int validUntil;         // Unix epoch ms (exclusive)
+  final int issuedAt;           // Unix epoch ms
+  final List<RootSignature> rootSignatures;   // non-empty when root-signed
+  final Uint8List? parentKeyId;               // non-null when intermediate-signed
+  final Uint8List? parentSignature;           // non-null when intermediate-signed
 
   const DirectoryRecord({
     required this.version,
@@ -34,6 +36,8 @@ class DirectoryRecord {
     required this.validUntil,
     required this.issuedAt,
     required this.rootSignatures,
+    this.parentKeyId,
+    this.parentSignature,
   });
 }
 

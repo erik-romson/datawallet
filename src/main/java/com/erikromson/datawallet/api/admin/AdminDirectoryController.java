@@ -4,6 +4,7 @@ import com.erikromson.datawallet.audit.AuditService;
 import com.erikromson.datawallet.directory.DirectoryRecord;
 import com.erikromson.datawallet.directory.DirectoryRecordCodec;
 import com.erikromson.datawallet.directory.DirectoryRecordVerifier;
+import com.erikromson.datawallet.directory.DirectoryRejection;
 import com.erikromson.datawallet.directory.PinnedRootHolder;
 import com.erikromson.datawallet.domain.DirectoryRecordEntity;
 import com.erikromson.datawallet.domain.DirectoryRecordRepository;
@@ -53,11 +54,23 @@ public class AdminDirectoryController {
     public ResponseEntity<Map<String, String>> publish(@RequestBody byte[] body, HttpServletRequest request) {
         adminPrincipalResolver.resolve(request).orElseThrow(AdminUnauthorized::new);
 
-        DirectoryRecord record = verifier.verify(body, pinnedRootHolder.get());
+        DirectoryRecordVerifier.ParentLookup parentLookup = parentKeyId ->
+                repository.findByKeyId(parentKeyId).stream()
+                        .map(DirectoryRecordEntity::getSignedRecord)
+                        .findFirst()
+                        .orElseThrow(() -> new DirectoryRejection.ParentNotFound(
+                                "No directory record found for parent_key_id"));
+
+        DirectoryRecord record = verifier.verify(body, pinnedRootHolder.get(), parentLookup);
 
         UUID subjectId = bytesToUuid(record.subjectId());
         DirectoryRecordEntity.DirectoryRecordId pk =
                 new DirectoryRecordEntity.DirectoryRecordId(record.recordType(), subjectId, record.keyId());
+
+        byte[] rootKeyId = record.parentKeyId() == null
+                ? record.rootSignatures().getFirst().rootKeyId()
+                : null;
+        byte[] parentKeyId = record.parentKeyId();
 
         Optional<DirectoryRecordEntity> existing = repository.findById(pk);
 
@@ -70,7 +83,8 @@ public class AdminDirectoryController {
             current.setValidFrom(Instant.ofEpochMilli(record.validFrom()));
             current.setValidUntil(Instant.ofEpochMilli(record.validUntil()));
             current.setIssuedAt(Instant.ofEpochMilli(record.issuedAt()));
-            current.setRootKeyId(record.rootSignatures().getFirst().rootKeyId());
+            current.setRootKeyId(rootKeyId);
+            current.setParentKeyId(parentKeyId);
             current.setSignedRecord(body);
             if ("revoked".equals(record.status()) && current.isPendingRevocation()) {
                 current.setPendingRevocation(false);
@@ -82,7 +96,7 @@ public class AdminDirectoryController {
                     Instant.ofEpochMilli(record.validFrom()),
                     Instant.ofEpochMilli(record.validUntil()),
                     Instant.ofEpochMilli(record.issuedAt()),
-                    record.rootSignatures().getFirst().rootKeyId(),
+                    rootKeyId, parentKeyId,
                     body
             );
             repository.save(entity);

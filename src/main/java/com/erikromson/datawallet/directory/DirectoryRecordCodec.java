@@ -3,6 +3,7 @@ package com.erikromson.datawallet.directory;
 import com.erikromson.datawallet.crypto.CanonicalCborMapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,15 +13,19 @@ public final class DirectoryRecordCodec {
     private final CanonicalCborMapper cbor = new CanonicalCborMapper();
 
     public byte[] encode(DirectoryRecord record) {
-        Map<String, Object> map = toMap(record);
-        List<Map<String, Object>> sigs = new ArrayList<>();
-        for (RootSignature rs : record.rootSignatures()) {
-            Map<String, Object> sigMap = new LinkedHashMap<>();
-            sigMap.put("root_key_id", rs.rootKeyId());
-            sigMap.put("signature", rs.signature());
-            sigs.add(sigMap);
+        Map<String, Object> map = toMap(record); // includes parent_key_id when present
+        if (record.parentKeyId() != null) {
+            map.put("parent_signature", record.parentSignature());
+        } else {
+            List<Map<String, Object>> sigs = new ArrayList<>();
+            for (RootSignature rs : record.rootSignatures()) {
+                Map<String, Object> sigMap = new LinkedHashMap<>();
+                sigMap.put("root_key_id", rs.rootKeyId());
+                sigMap.put("signature", rs.signature());
+                sigs.add(sigMap);
+            }
+            map.put("root_signatures", sigs);
         }
-        map.put("root_signatures", sigs);
         return cbor.writeBytes(map);
     }
 
@@ -36,8 +41,7 @@ public final class DirectoryRecordCodec {
     }
 
     public byte[] signedBytesOf(DirectoryRecord record) {
-        Map<String, Object> map = toMap(record);
-        return cbor.writeBytes(map);
+        return cbor.writeBytes(toMap(record));
     }
 
     public byte[] signedBytesOf(byte[] recordBytes) {
@@ -50,6 +54,7 @@ public final class DirectoryRecordCodec {
             throw new DirectoryRejection.MalformedCbor("Failed to parse directory record CBOR", e);
         }
         map.remove("root_signatures");
+        map.remove("parent_signature");
         return cbor.writeBytes(map);
     }
 
@@ -65,6 +70,9 @@ public final class DirectoryRecordCodec {
         map.put("valid_from", rec.validFrom());
         map.put("valid_until", rec.validUntil());
         map.put("issued_at", rec.issuedAt());
+        if (rec.parentKeyId() != null) {
+            map.put("parent_key_id", rec.parentKeyId());
+        }
         return map;
     }
 
@@ -81,21 +89,40 @@ public final class DirectoryRecordCodec {
         long validUntil = ((Number) map.get("valid_until")).longValue();
         long issuedAt = ((Number) map.get("issued_at")).longValue();
 
-        List<RootSignature> rootSignatures = new ArrayList<>();
-        Object rawSigs = map.get("root_signatures");
-        if (rawSigs instanceof List<?> sigList) {
-            for (Object entry : sigList) {
-                Map<String, Object> sigMap = (Map<String, Object>) entry;
-                rootSignatures.add(new RootSignature(
-                        (byte[]) sigMap.get("root_key_id"),
-                        (byte[]) sigMap.get("signature")
-                ));
+        boolean hasRootSigs = map.containsKey("root_signatures");
+        boolean hasParentSig = map.containsKey("parent_signature");
+
+        if (hasRootSigs && hasParentSig) {
+            throw new DirectoryRejection.SignatureContainerConflict(
+                    "Record has both root_signatures and parent_signature");
+        }
+        if (!hasRootSigs && !hasParentSig) {
+            throw new DirectoryRejection.SignatureContainerMissing(
+                    "Record has neither root_signatures nor parent_signature");
+        }
+
+        byte[] parentKeyId = (byte[]) map.get("parent_key_id");
+        byte[] parentSignature = hasParentSig ? (byte[]) map.get("parent_signature") : null;
+
+        List<RootSignature> rootSignatures = Collections.emptyList();
+        if (hasRootSigs) {
+            rootSignatures = new ArrayList<>();
+            Object rawSigs = map.get("root_signatures");
+            if (rawSigs instanceof List<?> sigList) {
+                for (Object entry : sigList) {
+                    Map<String, Object> sigMap = (Map<String, Object>) entry;
+                    rootSignatures.add(new RootSignature(
+                            (byte[]) sigMap.get("root_key_id"),
+                            (byte[]) sigMap.get("signature")
+                    ));
+                }
             }
         }
 
         return new DirectoryRecord(
                 version, recordType, subjectId, keyId, publicKey,
-                keyUse, status, validFrom, validUntil, issuedAt, rootSignatures
+                keyUse, status, validFrom, validUntil, issuedAt,
+                rootSignatures, parentKeyId, parentSignature
         );
     }
 

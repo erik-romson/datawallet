@@ -244,6 +244,45 @@ def build_directory_record(
     return canonical_cbor(record_map)
 
 
+def build_directory_record_parent_signed(
+    *,
+    version: int,
+    record_type: str,
+    subject_id: bytes,
+    key_id: bytes,
+    public_key: bytes,
+    key_use: str,
+    status: str,
+    valid_from: int,
+    valid_until: int,
+    issued_at: int,
+    parent_key_id: bytes,
+    parent_private_key: bytes,
+) -> bytes:
+    """Builds a directory record signed by a parent intermediate key.
+
+    signed_bytes = canonical_cbor(base_fields + parent_key_id)
+    parent_signature = ed25519_sign(parent_private_key, signed_bytes)
+    """
+    record_map = {
+        "version": version,
+        "record_type": record_type,
+        "subject_id": subject_id,
+        "key_id": key_id,
+        "public_key": public_key,
+        "key_use": key_use,
+        "status": status,
+        "valid_from": valid_from,
+        "valid_until": valid_until,
+        "issued_at": issued_at,
+        "parent_key_id": parent_key_id,   # included in signed bytes
+    }
+    signed_bytes = canonical_cbor(record_map)
+    parent_sig = ed25519_sign_detached(signed_bytes, parent_private_key)
+    record_map["parent_signature"] = parent_sig
+    return canonical_cbor(record_map)
+
+
 def build_pinned_root(root_keys: list[dict], timestamps: dict) -> bytes:
     roots = []
     for rk in root_keys:
@@ -752,6 +791,152 @@ def generate(out_dir: Path):
     )
     write_binary(out_dir / "directory" / "issuer-acme-active.cbor", acme_active)
     track("directory/issuer-acme-active.cbor", "directory", "Active issuer directory record: acme sign")
+
+    # ── Intermediate-record chain fixtures ──────────────────────────
+
+    intermediate_subject_id = sha256(b"intermediate-subject-id")[:16]
+    mobile_install_subject_id = sha256(b"mobile-install-subject-id")[:16]
+
+    # intermediate.cbor — root-signed intermediate record
+    intermediate_cbor = build_directory_record(
+        version=1,
+        record_type="intermediate",
+        subject_id=intermediate_subject_id,
+        key_id=key_ids["intermediate_sign"],
+        public_key=keys["intermediate_sign"]["public"],
+        key_use="sign",
+        status="active",
+        valid_from=timestamps["t_directory_valid_from"],
+        valid_until=timestamps["t_directory_valid_until"],
+        issued_at=timestamps["t_directory_issued"],
+        root_keys=root_keys_list,
+        threshold=2,
+    )
+    write_binary(out_dir / "directory" / "intermediate-record" / "intermediate.cbor", intermediate_cbor)
+    track("directory/intermediate-record/intermediate.cbor", "directory",
+          "Root-signed intermediate directory record")
+
+    # issuer-under-intermediate.cbor — mobile install issuer signed by intermediate
+    issuer_under_intermediate_cbor = build_directory_record_parent_signed(
+        version=1,
+        record_type="issuer",
+        subject_id=mobile_install_subject_id,
+        key_id=key_ids["mobile_install_sign"],
+        public_key=keys["mobile_install_sign"]["public"],
+        key_use="sign",
+        status="active",
+        valid_from=timestamps["t_directory_valid_from"],
+        valid_until=timestamps["t_directory_valid_until"],
+        issued_at=timestamps["t_directory_issued"],
+        parent_key_id=key_ids["intermediate_sign"],
+        parent_private_key=keys["intermediate_sign"]["private"],
+    )
+    write_binary(out_dir / "directory" / "intermediate-record" / "issuer-under-intermediate.cbor",
+                 issuer_under_intermediate_cbor)
+    track("directory/intermediate-record/issuer-under-intermediate.cbor", "directory",
+          "Issuer record signed by intermediate (valid chain)")
+
+    # chain-too-deep.cbor — issuer signed by wrong_intermediate, which itself has a parent_key_id
+    # (simulates depth > 2: leaf → wrong_intermediate → another level)
+    # We build a "deep intermediate" record that also has parent_key_id (not root-signed)
+    deep_intermediate_cbor = build_directory_record_parent_signed(
+        version=1,
+        record_type="intermediate",
+        subject_id=sha256(b"deep-intermediate-subject-id")[:16],
+        key_id=key_ids["wrong_intermediate"],
+        public_key=keys["wrong_intermediate"]["public"],
+        key_use="sign",
+        status="active",
+        valid_from=timestamps["t_directory_valid_from"],
+        valid_until=timestamps["t_directory_valid_until"],
+        issued_at=timestamps["t_directory_issued"],
+        parent_key_id=key_ids["intermediate_sign"],
+        parent_private_key=keys["intermediate_sign"]["private"],
+    )
+    write_binary(out_dir / "directory" / "intermediate-record" / "deep-intermediate.cbor",
+                 deep_intermediate_cbor)
+    track("directory/intermediate-record/deep-intermediate.cbor", "directory",
+          "Intermediate record that is itself parent-signed (used in chain-too-deep test)")
+
+    chain_too_deep_cbor = build_directory_record_parent_signed(
+        version=1,
+        record_type="issuer",
+        subject_id=mobile_install_subject_id,
+        key_id=key_ids["mobile_install_sign"],
+        public_key=keys["mobile_install_sign"]["public"],
+        key_use="sign",
+        status="active",
+        valid_from=timestamps["t_directory_valid_from"],
+        valid_until=timestamps["t_directory_valid_until"],
+        issued_at=timestamps["t_directory_issued"],
+        parent_key_id=key_ids["wrong_intermediate"],
+        parent_private_key=keys["wrong_intermediate"]["private"],
+    )
+    write_binary(out_dir / "directory" / "intermediate-record" / "chain-too-deep.cbor",
+                 chain_too_deep_cbor)
+    track("directory/intermediate-record/chain-too-deep.cbor", "directory",
+          "Issuer chain too deep: leaf -> intermediate -> intermediate (rejected)")
+
+    # wrong-parent-signature.cbor — issuer with mismatched parent signature (signed by wrong key)
+    wrong_parent_sig_cbor = build_directory_record_parent_signed(
+        version=1,
+        record_type="issuer",
+        subject_id=mobile_install_subject_id,
+        key_id=key_ids["mobile_install_sign"],
+        public_key=keys["mobile_install_sign"]["public"],
+        key_use="sign",
+        status="active",
+        valid_from=timestamps["t_directory_valid_from"],
+        valid_until=timestamps["t_directory_valid_until"],
+        issued_at=timestamps["t_directory_issued"],
+        parent_key_id=key_ids["intermediate_sign"],
+        parent_private_key=keys["wrong_intermediate"]["private"],  # wrong key!
+    )
+    write_binary(out_dir / "directory" / "intermediate-record" / "wrong-parent-signature.cbor",
+                 wrong_parent_sig_cbor)
+    track("directory/intermediate-record/wrong-parent-signature.cbor", "directory",
+          "Issuer with wrong parent signature (rejected)")
+
+    # both-signature-containers.cbor — record with both root_signatures AND parent_signature
+    both_containers_map = cbor2.loads(intermediate_cbor)  # root-signed intermediate
+    both_containers_map["parent_key_id"] = key_ids["intermediate_sign"]
+    both_containers_map["parent_signature"] = bytes(64)   # dummy 64 bytes
+    write_binary(out_dir / "directory" / "intermediate-record" / "both-signature-containers.cbor",
+                 canonical_cbor(both_containers_map))
+    track("directory/intermediate-record/both-signature-containers.cbor", "directory",
+          "Record with both root_signatures and parent_signature (XOR violation, rejected)")
+
+    # no-signature-container.cbor — record with neither root_signatures nor parent_signature
+    no_container_map = {
+        "version": 1,
+        "record_type": "issuer",
+        "subject_id": mobile_install_subject_id,
+        "key_id": key_ids["mobile_install_sign"],
+        "public_key": keys["mobile_install_sign"]["public"],
+        "key_use": "sign",
+        "status": "active",
+        "valid_from": timestamps["t_directory_valid_from"],
+        "valid_until": timestamps["t_directory_valid_until"],
+        "issued_at": timestamps["t_directory_issued"],
+    }
+    write_binary(out_dir / "directory" / "intermediate-record" / "no-signature-container.cbor",
+                 canonical_cbor(no_container_map))
+    track("directory/intermediate-record/no-signature-container.cbor", "directory",
+          "Record with no signature container (rejected)")
+
+    # Intermediate-record metadata sidecar
+    intermediate_meta = {
+        "intermediate_key_id_hex": bytes_to_hex(key_ids["intermediate_sign"]),
+        "intermediate_public_key_hex": bytes_to_hex(keys["intermediate_sign"]["public"]),
+        "intermediate_subject_id_hex": bytes_to_hex(intermediate_subject_id),
+        "mobile_install_key_id_hex": bytes_to_hex(key_ids["mobile_install_sign"]),
+        "mobile_install_subject_id_hex": bytes_to_hex(mobile_install_subject_id),
+        "wrong_intermediate_key_id_hex": bytes_to_hex(key_ids["wrong_intermediate"]),
+    }
+    write_json(out_dir / "directory" / "intermediate-record" / "intermediate_meta.json",
+               intermediate_meta)
+    track("directory/intermediate-record/intermediate_meta.json", "directory",
+          "Intermediate-record chain fixture metadata")
 
     # ── Invalid directory records ───────────────────────────────────
 

@@ -62,3 +62,38 @@ final class RootKeyNotFound extends DirectoryRejection {
 final class RootKeyExpired extends DirectoryRejection {
   const RootKeyExpired(String detail) : super(detail);
 }
+
+/// Exactly one of root_signatures / parent_signature must be present; neither is.
+final class SignatureContainerMissing extends DirectoryRejection {
+  const SignatureContainerMissing(String detail) : super(detail);
+}
+
+/// Both root_signatures and parent_signature are present (XOR violation).
+final class SignatureContainerConflict extends DirectoryRejection {
+  const SignatureContainerConflict(String detail) : super(detail);
+}
+
+/// The chain depth exceeds the maximum of 2 (root → intermediate → leaf).
+final class ChainTooDeep extends DirectoryRejection {
+  const ChainTooDeep(String detail) : super(detail);
+}
+
+/// The parent record referenced by parent_key_id could not be found.
+final class ParentNotFound extends DirectoryRejection {
+  const ParentNotFound(String detail) : super(detail);
+}
+
+/// The parent record is not of record_type 'intermediate'.
+final class ParentNotIntermediate extends DirectoryRejection {
+  const ParentNotIntermediate(String detail) : super(detail);
+}
+
+/// The parent record is not active or its validity window does not cover now.
+final class ParentInactive extends DirectoryRejection {
+  const ParentInactive(String detail) : super(detail);
+}
+
+/// The parent_signature did not verify against the parent's public key.
+final class ParentSignatureInvalid extends DirectoryRejection {
+  const ParentSignatureInvalid(String detail) : super(detail);
+}

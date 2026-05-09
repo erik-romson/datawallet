@@ -127,7 +127,7 @@ public class InitDevTrustCommand implements Callable<Integer> {
         DirectoryRecord unsigned = new DirectoryRecord(
                 1, "issuer", uuidToBytes(issuerId), issuerKeyId,
                 issuerKp.publicKey(), "sign", "active",
-                validFrom, validUntil, now, List.of()
+                validFrom, validUntil, now, List.of(), null, null
         );
         DirectoryRecordCodec dirCodec = new DirectoryRecordCodec();
         byte[] signedBytes = dirCodec.signedBytesOf(unsigned);
@@ -141,7 +141,7 @@ public class InitDevTrustCommand implements Callable<Integer> {
         DirectoryRecord signed = new DirectoryRecord(
                 1, "issuer", uuidToBytes(issuerId), issuerKeyId,
                 issuerKp.publicKey(), "sign", "active",
-                validFrom, validUntil, now, sigs
+                validFrom, validUntil, now, sigs, null, null
         );
         byte[] signedRecord = dirCodec.encode(signed);
 

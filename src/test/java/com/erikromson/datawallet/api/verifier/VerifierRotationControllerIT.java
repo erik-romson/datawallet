@@ -289,11 +289,11 @@ class VerifierRotationControllerIT {
             var encRecord = new DirectoryRecordEntity(
                     "verifier", v.verifierId(), v.encKeyId(),
                     "active", Instant.now(), Instant.now().plusSeconds(86400),
-                    Instant.now(), new byte[16], new byte[32]);
+                    Instant.now(), new byte[16], null, new byte[32]);
             var authRecord = new DirectoryRecordEntity(
                     "verifier", v.verifierId(), v.authKeyId(),
                     "active", Instant.now(), Instant.now().plusSeconds(86400),
-                    Instant.now(), new byte[16], new byte[32]);
+                    Instant.now(), new byte[16], null, new byte[32]);
             directoryRecordRepository.save(encRecord);
             directoryRecordRepository.save(authRecord);
 

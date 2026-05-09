@@ -74,7 +74,8 @@ class IssuerKeyResolverImplIT {
                 Instant.ofEpochMilli(parsed.validFrom()),
                 Instant.ofEpochMilli(parsed.validUntil()),
                 Instant.ofEpochMilli(parsed.issuedAt()),
-                parsed.rootSignatures().getFirst().rootKeyId(),
+                parsed.rootSignatures().isEmpty() ? null : parsed.rootSignatures().getFirst().rootKeyId(),
+                parsed.parentKeyId(),
                 signedRecord
         );
         repository.save(entity);

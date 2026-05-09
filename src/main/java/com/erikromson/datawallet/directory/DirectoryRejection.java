@@ -68,4 +68,32 @@ public sealed class DirectoryRejection extends RuntimeException {
             super(detail);
         }
     }
+
+    public static final class SignatureContainerMissing extends DirectoryRejection {
+        public SignatureContainerMissing(String detail) { super(detail); }
+    }
+
+    public static final class SignatureContainerConflict extends DirectoryRejection {
+        public SignatureContainerConflict(String detail) { super(detail); }
+    }
+
+    public static final class ChainTooDeep extends DirectoryRejection {
+        public ChainTooDeep(String detail) { super(detail); }
+    }
+
+    public static final class ParentNotFound extends DirectoryRejection {
+        public ParentNotFound(String detail) { super(detail); }
+    }
+
+    public static final class ParentNotIntermediate extends DirectoryRejection {
+        public ParentNotIntermediate(String detail) { super(detail); }
+    }
+
+    public static final class ParentInactive extends DirectoryRejection {
+        public ParentInactive(String detail) { super(detail); }
+    }
+
+    public static final class ParentSignatureInvalid extends DirectoryRejection {
+        public ParentSignatureInvalid(String detail) { super(detail); }
+    }
 }

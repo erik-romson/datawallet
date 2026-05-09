@@ -14,6 +14,9 @@ import java.util.UUID;
 public interface DirectoryRecordRepository
         extends JpaRepository<DirectoryRecordEntity, DirectoryRecordEntity.DirectoryRecordId> {
 
+    @Query("SELECT d FROM DirectoryRecordEntity d WHERE d.keyId = :keyId")
+    List<DirectoryRecordEntity> findByKeyId(@Param("keyId") byte[] keyId);
+
     @Query("SELECT d FROM DirectoryRecordEntity d WHERE d.subjectId = :subjectId AND d.keyId = :keyId")
     List<DirectoryRecordEntity> findBySubjectIdAndKeyId(
             @Param("subjectId") UUID subjectId,

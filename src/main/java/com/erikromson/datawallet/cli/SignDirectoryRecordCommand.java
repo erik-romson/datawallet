@@ -67,7 +67,7 @@ public class SignDirectoryRecordCommand implements Callable<Integer> {
 
         DirectoryRecord unsigned = new DirectoryRecord(
                 1, recordType, subjectId, keyId, publicKey,
-                keyUse, status, validFrom, validUntil, issuedAt, List.of()
+                keyUse, status, validFrom, validUntil, issuedAt, List.of(), null, null
         );
 
         byte[] signedBytes = codec.signedBytesOf(unsigned);
@@ -83,7 +83,7 @@ public class SignDirectoryRecordCommand implements Callable<Integer> {
 
         DirectoryRecord signed = new DirectoryRecord(
                 1, recordType, subjectId, keyId, publicKey,
-                keyUse, status, validFrom, validUntil, issuedAt, signatures
+                keyUse, status, validFrom, validUntil, issuedAt, signatures, null, null
         );
 
         Files.write(outFile.toPath(), codec.encode(signed));
