@@ -4,7 +4,7 @@ Guidance for Claude Code working in this repository.
 
 ## What this repo is
 
-Data Wallet v1: a Spring Boot server + Flutter verifier client + Java CLI for end-to-end-encrypted, issuer-signed envelope storage. Single-module Maven; Flutter project under `client/`; cross-stack fixtures under `spec/`.
+Data Wallet: a Spring Boot **server** + an HSM-backed **intermediate** signing service + Flutter verifier client + Java CLI. **Each Java deployable is a top-level Maven project** at the repo root (`./pom.xml` for the server, `intermediate/pom.xml` for the intermediate). Both inherit from a shared uber-pom at `parent/pom.xml` that pins dependency and plugin versions in lockstep. Flutter project under `client/`; cross-stack fixtures under `spec/`.
 
 Authoritative specs (in priority order, most-specific wins):
 
@@ -41,6 +41,7 @@ Integration tests use Testcontainers; Docker must be running.
 
 ## Hard rules
 
+- **Maven layout:** each deployable JAR has its own top-level `pom.xml`. The shared uber-pom at `parent/pom.xml` (`packaging=pom`, no `<modules>`) is inherited by every deployable's pom and is the only place dependency and plugin versions are declared. Deployables build independently — `mvn -f <deployable>/pom.xml verify`.
 - **Crypto sources:** libsodium only. Never `java.security.SecureRandom` or `dart:math.Random` for keys, nonces, or session tokens.
 - **Signed payloads are canonical CBOR bytes.** Wire bytes = DB `BYTEA` bytes = signed bytes. Never re-serialize on the server.
 - **Wire format split:** signed payloads use `application/cbor`; everything else is JSON with binary fields as base64url *without padding*.

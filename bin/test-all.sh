@@ -16,6 +16,11 @@ if [ -f spec/tools/jwt_interop_check.py ]; then
     fi
 fi
 
+if [ -f intermediate/pom.xml ]; then
+    echo "--- Intermediate test phase ---"
+    mvn -B -f intermediate/pom.xml verify
+fi
+
 if [ -f client/pubspec.yaml ]; then
     echo "--- Flutter test phase ---"
     (cd client && flutter pub get && flutter test)
