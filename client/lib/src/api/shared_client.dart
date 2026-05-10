@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
-import 'api_exception.dart';
+import 'api_client.dart';
 
 class SharedListItem {
   final String entryId;
@@ -27,7 +27,7 @@ class SharedListItem {
         issuerId: json['issuer_id'] as String,
         issuerLabel: json['issuer_label'] as String? ?? '',
         issuerSigningKeyId:
-            _fromB64url(json['issuer_signing_key_id'] as String),
+            fromB64url(json['issuer_signing_key_id'] as String),
         createdAt: json['created_at'] as String,
         description: json['description'] as String? ?? '',
       );
@@ -60,7 +60,7 @@ class SharedClient {
       Uri.parse('$baseUrl/v1/shared').replace(queryParameters: params),
       headers: {'Authorization': 'Bearer $token'},
     );
-    if (resp.statusCode != 200) throw _toException(resp);
+    if (resp.statusCode != 200) throw toApiException(resp);
 
     final json = jsonDecode(resp.body) as Map<String, dynamic>;
     final rawItems = json['items'] as List<dynamic>;
@@ -81,26 +81,7 @@ class SharedClient {
         'Accept': 'application/cbor',
       },
     );
-    if (resp.statusCode != 200) throw _toException(resp);
+    if (resp.statusCode != 200) throw toApiException(resp);
     return resp.bodyBytes;
   }
-
-  ApiException _toException(http.Response resp) {
-    String? code;
-    String message = 'HTTP ${resp.statusCode}';
-    try {
-      final json = jsonDecode(resp.body) as Map<String, dynamic>;
-      final error = json['error'] as Map<String, dynamic>?;
-      if (error != null) {
-        code = error['code'] as String?;
-        message = error['message'] as String? ?? message;
-      }
-    } catch (_) {}
-    return ApiException(resp.statusCode, message, errorCode: code);
-  }
-}
-
-Uint8List _fromB64url(String s) {
-  final padded = s.padRight((s.length + 3) & ~3, '=');
-  return base64Url.decode(padded);
 }
