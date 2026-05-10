@@ -7,7 +7,6 @@ import com.erikromson.datawallet.crypto.Random;
 import com.erikromson.datawallet.crypto.UuidV7;
 import com.erikromson.datawallet.directory.DirectoryRecord;
 import com.erikromson.datawallet.directory.DirectoryRecordCodec;
-import com.erikromson.datawallet.directory.PinnedRoot;
 import com.erikromson.datawallet.directory.RootSignature;
 import com.erikromson.datawallet.directory.RootUpdateCodec;
 import org.springframework.context.annotation.Profile;
@@ -25,25 +24,26 @@ import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
-/// Bootstraps a development trust chain: generates a root quorum and an issuer
-/// signing key, signs a directory record with the roots, and inserts both into
-/// Postgres so the running server will accept envelopes from this issuer.
+/// Bootstraps a development trust chain: generates a root quorum and an intermediate
+/// signing key, signs an `intermediate` directory record with the roots, and inserts
+/// both into Postgres so the intermediate service can enroll issuers.
 ///
-/// Idempotent: if `<state-dir>/issuer.json` already exists and `--force` is not
+/// Idempotent: if `<state-dir>/intermediate.json` already exists and `--force` is not
 /// given, this command exits without making changes.
 ///
-/// Output: writes root and issuer private keys, the pinned root, and a JSON
-/// metadata file (issuer.json) into `<state-dir>` (default ~/.datawallet/dev).
+/// Output: writes root and intermediate private keys, the pinned root, and a JSON
+/// metadata file (`intermediate.json`) into `<state-dir>`.
 @Component
 @Profile("cli")
 @Command(
         name = "init-dev-trust",
-        description = "Generate dev trust roots + issuer keys and seed Postgres",
+        description = "Generate dev trust roots + intermediate signing key and seed Postgres",
         mixinStandardHelpOptions = true
 )
 public class InitDevTrustCommand implements Callable<Integer> {
@@ -62,7 +62,7 @@ public class InitDevTrustCommand implements Callable<Integer> {
             interactive = true, arity = "0..1")
     char[] jdbcPassword;
 
-    @Option(names = "--state-dir", description = "Where to write keys and issuer.json")
+    @Option(names = "--state-dir", description = "Where to write keys and intermediate.json")
     File stateDir = new File(System.getProperty("user.home"), ".datawallet/dev");
 
     @Option(names = "--root-count", description = "Number of root keys (default: 1)")
@@ -71,36 +71,52 @@ public class InitDevTrustCommand implements Callable<Integer> {
     @Option(names = "--root-threshold", description = "Signature threshold (default: 1)")
     int rootThreshold = 1;
 
-    @Option(names = "--issuer-label", description = "Issuer label embedded in envelopes")
-    String issuerLabel = "Acme Dev Issuer";
+    @Option(names = "--intermediate-label", description = "Intermediate label (default: ${DEFAULT-VALUE})")
+    String intermediateLabel = "E2E Dev Intermediate";
+
+    @Option(names = "--intermediate-seed-hex",
+            description = "64-hex-char seed override (auto-generated via libsodium if omitted)")
+    String intermediateSeedHex;
 
     @Option(names = "--passphrase", defaultValue = "devpassphrase",
             description = "Passphrase for storing private keys (default: ${DEFAULT-VALUE} for dev)",
             interactive = true, arity = "0..1")
     char[] passphrase;
 
-    @Option(names = "--force", description = "Re-init even if state-dir already has issuer.json")
+    @Option(names = "--force", description = "Re-init even if state-dir already has intermediate.json")
     boolean force;
+
+    @Option(names = "--print-seed-only",
+            description = "Emit only the intermediate seed hex on stdout; no DB or file writes")
+    boolean printSeedOnly;
 
     @Override
     public Integer call() throws Exception {
-        Path stateDirPath = stateDir.toPath();
-        Path issuerJson = stateDirPath.resolve("issuer.json");
-        if (Files.exists(issuerJson) && !force) {
-            System.out.println("Already initialised: " + issuerJson);
-            System.out.println("Use --force to regenerate.");
+        if (printSeedOnly) {
+            byte[] seed = intermediateSeedHex != null
+                    ? HexFormat.of().parseHex(intermediateSeedHex)
+                    : Random.bytes(32);
+            System.out.println(HexFormat.of().formatHex(seed));
             return 0;
         }
+
         if (rootThreshold < 1 || rootThreshold > rootCount) {
             System.err.println("--root-threshold must be between 1 and --root-count");
             return 2;
         }
 
+        Path stateDirPath = stateDir.toPath();
+        Path intermediateJsonPath = stateDirPath.resolve("intermediate.json");
+        if (Files.exists(intermediateJsonPath) && !force) {
+            System.out.println("Already initialised: " + intermediateJsonPath);
+            System.out.println("Use --force to regenerate.");
+            return 0;
+        }
+
         Files.createDirectories(stateDirPath);
 
         // 1. Root quorum
-        System.out.println("Generating " + rootCount + " root keypair(s) (threshold="
-                + rootThreshold + ")...");
+        System.out.println("Generating " + rootCount + " root keypair(s) (threshold=" + rootThreshold + ")...");
         GenRootCommand.Result roots = GenRootCommand.generate(rootCount, rootThreshold);
         for (int i = 0; i < roots.keyPairs().size(); i++) {
             Path keyFile = stateDirPath.resolve("root-" + i + ".privkey.box");
@@ -110,23 +126,25 @@ public class InitDevTrustCommand implements Callable<Integer> {
         byte[] pinnedRootCbor = rootCodec.encodePinnedRoot(roots.pinnedRoot());
         Files.write(stateDirPath.resolve("pinned-root.cbor"), pinnedRootCbor);
 
-        // 2. Issuer signing key
-        System.out.println("Generating issuer signing key...");
-        UUID issuerId = UuidV7.now();
-        byte[] issuerSeed = Random.bytes(32);
-        Ed25519.KeyPair issuerKp = Ed25519.seedKeypair(issuerSeed);
-        byte[] issuerKeyId = Random.bytes(16);
-        Path issuerKeyFile = stateDirPath.resolve("issuer.privkey.box");
-        CliKeyStore.save(issuerKeyFile, issuerKp.privateKey(), passphrase);
+        // 2. Intermediate signing key
+        System.out.println("Generating intermediate signing key...");
+        UUID intermediateId = UuidV7.now();
+        byte[] intermediateSeed = intermediateSeedHex != null
+                ? HexFormat.of().parseHex(intermediateSeedHex)
+                : Random.bytes(32);
+        Ed25519.KeyPair intermediateKp = Ed25519.seedKeypair(intermediateSeed);
+        byte[] intermediateKeyId = Random.bytes(16);
+        Path intermediateKeyFile = stateDirPath.resolve("intermediate.privkey.box");
+        CliKeyStore.save(intermediateKeyFile, intermediateKp.privateKey(), passphrase);
 
-        // 3. Sign directory record with all root keys
-        System.out.println("Signing issuer directory record with root keys...");
+        // 3. Sign intermediate directory record with all root keys
+        System.out.println("Signing intermediate directory record with root keys...");
         long now = System.currentTimeMillis();
-        long validFrom = now - 60_000;                         // 1 min ago, avoid clock skew
-        long validUntil = now + 365L * 24 * 3600 * 1000;       // 1 year
+        long validFrom = now - 60_000;                        // 1 min ago, avoid clock skew
+        long validUntil = now + 365L * 24 * 3600 * 1000;     // 1 year
         DirectoryRecord unsigned = new DirectoryRecord(
-                1, "issuer", uuidToBytes(issuerId), issuerKeyId,
-                issuerKp.publicKey(), "sign", "active",
+                1, "intermediate", uuidToBytes(intermediateId), intermediateKeyId,
+                intermediateKp.publicKey(), "sign", "active",
                 validFrom, validUntil, now, List.of(), null, null
         );
         DirectoryRecordCodec dirCodec = new DirectoryRecordCodec();
@@ -139,14 +157,14 @@ public class InitDevTrustCommand implements Callable<Integer> {
             sigs.add(new RootSignature(roots.keyIds().get(i), sig));
         }
         DirectoryRecord signed = new DirectoryRecord(
-                1, "issuer", uuidToBytes(issuerId), issuerKeyId,
-                issuerKp.publicKey(), "sign", "active",
+                1, "intermediate", uuidToBytes(intermediateId), intermediateKeyId,
+                intermediateKp.publicKey(), "sign", "active",
                 validFrom, validUntil, now, sigs, null, null
         );
         byte[] signedRecord = dirCodec.encode(signed);
 
-        // 4. Insert into Postgres
-        System.out.println("Inserting pinned root + directory record into Postgres...");
+        // 4. Insert pinned root and intermediate record into Postgres
+        System.out.println("Inserting pinned root + intermediate record into Postgres...");
         try (Connection conn = DriverManager.getConnection(jdbcUrl, jdbcUser, new String(jdbcPassword))) {
             conn.setAutoCommit(false);
 
@@ -160,14 +178,10 @@ public class InitDevTrustCommand implements Callable<Integer> {
                     "INSERT INTO directory_records " +
                             "(record_type, subject_id, key_id, status, valid_from, valid_until, " +
                             " issued_at, root_key_id, signed_record) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                            "ON CONFLICT (record_type, subject_id, key_id) DO UPDATE SET " +
-                            " status = EXCLUDED.status, valid_from = EXCLUDED.valid_from, " +
-                            " valid_until = EXCLUDED.valid_until, issued_at = EXCLUDED.issued_at, " +
-                            " root_key_id = EXCLUDED.root_key_id, signed_record = EXCLUDED.signed_record")) {
-                ps.setString(1, "issuer");
-                ps.setObject(2, issuerId);
-                ps.setBytes(3, issuerKeyId);
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                ps.setString(1, "intermediate");
+                ps.setObject(2, intermediateId);
+                ps.setBytes(3, intermediateKeyId);
                 ps.setString(4, "active");
                 ps.setTimestamp(5, Timestamp.from(Instant.ofEpochMilli(validFrom)));
                 ps.setTimestamp(6, Timestamp.from(Instant.ofEpochMilli(validUntil)));
@@ -176,33 +190,31 @@ public class InitDevTrustCommand implements Callable<Integer> {
                 ps.setBytes(9, signedRecord);
                 ps.executeUpdate();
             }
+
             conn.commit();
         }
 
-        // 5. Save metadata
+        java.util.Arrays.fill(jdbcPassword, '\0');
+
+        // 5. Write metadata
         ObjectMapper json = new ObjectMapper();
         ObjectNode meta = json.createObjectNode();
-        meta.put("issuer_id", issuerId.toString());
-        meta.put("issuer_label", issuerLabel);
-        meta.put("issuer_key_id_hex", HexFormat.of().formatHex(issuerKeyId));
-        meta.put("issuer_priv_path", issuerKeyFile.toAbsolutePath().toString());
-        meta.put("pinned_root_path",
-                stateDirPath.resolve("pinned-root.cbor").toAbsolutePath().toString());
-        meta.put("valid_from_ms", validFrom);
-        meta.put("valid_until_ms", validUntil);
-        Files.writeString(issuerJson, json.writerWithDefaultPrettyPrinter().writeValueAsString(meta));
+        meta.put("intermediate_id", intermediateId.toString());
+        meta.put("key_id", HexFormat.of().formatHex(intermediateKeyId));
+        meta.put("pubkey_b64", Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(intermediateKp.publicKey()));
+        meta.put("seed_hex", HexFormat.of().formatHex(intermediateSeed));
+        Files.writeString(intermediateJsonPath,
+                json.writerWithDefaultPrettyPrinter().writeValueAsString(meta));
 
         java.util.Arrays.fill(passphrase, '\0');
-        java.util.Arrays.fill(jdbcPassword, '\0');
 
         System.out.println();
         System.out.println("Dev trust initialised.");
-        System.out.println("  state dir:    " + stateDirPath.toAbsolutePath());
-        System.out.println("  issuer_id:    " + issuerId);
-        System.out.println("  issuer_label: " + issuerLabel);
-        System.out.println("  metadata:     " + issuerJson.toAbsolutePath());
-        System.out.println();
-        System.out.println("Next: bin/cli.sh share-with-verifier --to <handle> --plaintext '...' --dev");
+        System.out.println("  state dir:       " + stateDirPath.toAbsolutePath());
+        System.out.println("  intermediate_id: " + intermediateId);
+        System.out.println("  label:           " + intermediateLabel);
+        System.out.println("  metadata:        " + intermediateJsonPath.toAbsolutePath());
         return 0;
     }
 

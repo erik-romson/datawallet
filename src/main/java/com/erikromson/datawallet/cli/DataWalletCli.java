@@ -20,7 +20,6 @@ import java.util.concurrent.Callable;
                 UploadEnvelopeCommand.class,
                 RegisterVerifierCommand.class,
                 InitDevTrustCommand.class,
-                ShareWithVerifierCommand.class,
                 VerifierFetchCommand.class
         },
         mixinStandardHelpOptions = true
