@@ -17,6 +17,14 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * Asserts {@link JwsSigner} produces the wire shape the server-side
+ * {@code BearerJwtVerifier} requires. Verification is done with raw
+ * libsodium here because the intermediate cannot depend on the server
+ * (deployable independence per CLAUDE.md). The matching contract test
+ * runs on the server side: {@code JwsInteropIT} mirrors this minting
+ * recipe inline and feeds the result into the production verifier.
+ */
 class JwsSignerInteropTest {
 
     private static final byte[] SEED = HexFormat.of().parseHex(

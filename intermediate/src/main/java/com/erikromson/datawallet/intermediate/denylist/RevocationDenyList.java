@@ -2,7 +2,6 @@ package com.erikromson.datawallet.intermediate.denylist;
 
 import com.erikromson.datawallet.intermediate.client.DataWalletAdminClient;
 import com.erikromson.datawallet.intermediate.observability.MetricsConfig;
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -28,7 +27,6 @@ public class RevocationDenyList {
     private final long maxStalenessSeconds;
     private final AtomicReference<Set<DenyEntry>> entries = new AtomicReference<>(Collections.emptySet());
     private final AtomicReference<Instant> lastRefresh = new AtomicReference<>();
-    private final Counter refreshFailuresCounter;
     private final MeterRegistry meterRegistry;
 
     public RevocationDenyList(DataWalletAdminClient client,
@@ -37,7 +35,6 @@ public class RevocationDenyList {
         this.client = client;
         this.meterRegistry = meterRegistry;
         this.maxStalenessSeconds = maxStalenessSeconds;
-        this.refreshFailuresCounter = meterRegistry.counter(MetricsConfig.DENYLIST_REFRESH_FAILURES);
     }
 
     @PostConstruct
@@ -54,7 +51,7 @@ public class RevocationDenyList {
         try {
             rebuild();
         } catch (Exception e) {
-            refreshFailuresCounter.increment();
+            meterRegistry.counter(MetricsConfig.DENYLIST_REFRESH_FAILURES).increment();
             log.warn("Deny-list refresh failed; continuing with last good snapshot", e);
         }
     }

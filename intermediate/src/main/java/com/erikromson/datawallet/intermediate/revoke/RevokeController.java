@@ -1,6 +1,8 @@
 package com.erikromson.datawallet.intermediate.revoke;
 
+import com.erikromson.datawallet.intermediate.security.OperatorPrincipalResolver;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,13 +19,20 @@ public class RevokeController {
     private static final Base64.Decoder B64URL_DEC = Base64.getUrlDecoder();
 
     private final RevokeService revokeService;
+    private final OperatorPrincipalResolver operatorPrincipalResolver;
 
-    public RevokeController(RevokeService revokeService) {
+    public RevokeController(RevokeService revokeService,
+                            OperatorPrincipalResolver operatorPrincipalResolver) {
         this.revokeService = revokeService;
+        this.operatorPrincipalResolver = operatorPrincipalResolver;
     }
 
     @PostMapping("/revoke")
-    public ResponseEntity<?> revoke(@RequestBody RevokeRequest request) {
+    public ResponseEntity<?> revoke(@RequestBody RevokeRequest request, HttpServletRequest httpRequest) {
+        if (operatorPrincipalResolver.resolve(httpRequest).isEmpty()) {
+            return ResponseEntity.status(401).body(Map.of("error", "operator_cert_required"));
+        }
+
         UUID installUuid = UUID.fromString(request.installUuid());
         byte[] keyId = B64URL_DEC.decode(request.keyId());
 

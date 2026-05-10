@@ -47,6 +47,8 @@ public class MetricsConfig {
             registry.counter(ATTESTATION_RESULTS, "result", result);
         }
 
+        registry.counter(DENYLIST_REFRESH_FAILURES);
+
         registry.gauge(DENYLIST_SIZE, denyList, RevocationDenyList::size);
         registry.gauge(DENYLIST_AGE, denyList, RevocationDenyList::ageSeconds);
     }

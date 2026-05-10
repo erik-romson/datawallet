@@ -33,6 +33,15 @@ datawallet:
         key-version-name: ${INTERMEDIATE_KMS_KEY_VERSION_NAME:}
     bearer:
       audience: urn:datawallet:server
+    revoke:
+      # PEM truststore containing the operator-CA root used to validate the
+      # mTLS client cert presented to POST /revoke. The TLS connector
+      # (server.ssl.*) is what enforces the cert at handshake; this property
+      # documents which CA is the source of truth for that connector.
+      operator-truststore: ${INTERMEDIATE_OPERATOR_TRUSTSTORE:}
+      # Subject DN OU defense-in-depth: the X509 resolver only accepts certs
+      # whose subject contains "OU=<this value>".
+      operator-ou: operators
     attestation:
       mode: stub
       play-integrity:
