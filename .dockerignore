@@ -1,0 +1,13 @@
+target/
+intermediate/target/
+client/
+spec/
+bats/
+bin/
+docs/
+tmp/
+.idea/
+.git/
+*.md
+Dockerfile
+docker-compose*.yml
