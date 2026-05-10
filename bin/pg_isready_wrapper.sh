@@ -1,8 +1,5 @@
 #!/bin/bash
-# Shadow pg_isready so the readiness check only passes after init scripts
-# have completed. The postgres entrypoint runs init scripts against a
-# temporary server that listens *only* on the Unix socket, then stops it
-# and starts the permanent server (TCP + Unix). By forcing TCP via
-# -h localhost, this check inherently waits for init (including
-# bin/db-init.sql) to finish.
-exec /usr/lib/postgresql/16/bin/pg_isready -h localhost "$@"
+# Shadow pg_isready: TCP-only check ensures we wait for the permanent server.
+# The temp init server is Unix-socket-only; -h 127.0.0.1 forces IPv4 TCP.
+# -t 5 caps the SYN phase; outer timeout 5 caps post-connect auth wait.
+exec timeout 5 /usr/lib/postgresql/16/bin/pg_isready -h 127.0.0.1 -t 5 "$@"
