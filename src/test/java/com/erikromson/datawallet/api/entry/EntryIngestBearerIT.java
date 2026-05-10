@@ -67,9 +67,10 @@ class EntryIngestBearerIT {
 
     @BeforeEach
     void seedIntermediateAndInstallRecords() {
-        // Clean up any prior test entries
+        // Clean up any prior test entries and rate-limit state that other tests may have consumed.
         jdbcTemplate.update("DELETE FROM entry_recipients WHERE entry_id = ?::uuid", BASIC_ENTRY_ID);
         jdbcTemplate.update("DELETE FROM entries WHERE entry_id = ?::uuid", BASIC_ENTRY_ID);
+        jdbcTemplate.update("DELETE FROM rate_limits");
 
         // Clean up prior test directory records (keeping fixture ones)
         jdbcTemplate.update("DELETE FROM directory_records WHERE record_type = 'intermediate'");

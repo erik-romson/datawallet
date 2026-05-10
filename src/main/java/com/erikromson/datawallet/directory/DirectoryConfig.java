@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 @Configuration
 public class DirectoryConfig {
@@ -23,6 +24,10 @@ public class DirectoryConfig {
             path = Path.of(configuredPath);
         } else {
             path = Path.of(System.getProperty("user.dir"), "spec", "fixtures", "directory", "pinned-root.cbor");
+        }
+        if (!Files.exists(path)) {
+            // No fixture available (e.g. Docker e2e); start empty — DB startup loader will populate.
+            return new PinnedRootHolder(new PinnedRoot(1, "ed25519-quorum-v1", 1, List.of()));
         }
         byte[] bytes = Files.readAllBytes(path);
         PinnedRoot initial = new DirectoryRecordCodec().decodePinnedRoot(bytes);

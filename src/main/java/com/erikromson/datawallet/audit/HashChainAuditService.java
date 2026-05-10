@@ -3,6 +3,7 @@ package com.erikromson.datawallet.audit;
 import com.erikromson.datawallet.crypto.CanonicalCborMapper;
 import com.erikromson.datawallet.crypto.Sha256;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,11 @@ import java.util.UUID;
  * <p>Computes {@code hash_n = SHA256(prev_hash || canonical_cbor(event))} per
  * `crypto-formats.md §11`. Each event is written in a dedicated {@code REQUIRES_NEW}
  * transaction so the audit record commits independently of the caller's transaction.
- * The {@code FOR UPDATE} on the chain-head read serializes concurrent writers.
+ *
+ * <p>Concurrent writers are serialized via a PostgreSQL advisory transaction lock
+ * ({@code pg_advisory_xact_lock}) rather than {@code SELECT … FOR UPDATE}, since
+ * {@code wallet_app} only holds {@code INSERT, SELECT} on {@code audit_log}.
+ * The lock is released automatically when the {@code REQUIRES_NEW} transaction commits.
  *
  * <p>v1 chain insert is a serialization point; pilot scale tolerates this.
  * Future scale needs partitioned chains.
@@ -30,6 +35,9 @@ import java.util.UUID;
 @Service
 @Primary
 public class HashChainAuditService implements AuditService {
+
+    // Stable numeric key for the audit-chain advisory lock.
+    private static final long AUDIT_CHAIN_LOCK_KEY = 0x6461_7461_7761_6C6CL; // "datwall"
 
     static final byte[] GENESIS_PREV_HASH;
 
@@ -39,17 +47,21 @@ public class HashChainAuditService implements AuditService {
     }
 
     private final AuditRepository auditRepository;
+    private final JdbcTemplate jdbc;
     private final CanonicalCborMapper cborMapper;
 
-    public HashChainAuditService(AuditRepository auditRepository) {
+    public HashChainAuditService(AuditRepository auditRepository, JdbcTemplate jdbc) {
         this.auditRepository = auditRepository;
+        this.jdbc = jdbc;
         this.cborMapper = new CanonicalCborMapper();
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordEvent(EventType type, UUID actorId, UUID entryId, Map<String, Object> payload) {
-        Optional<AuditEntity> head = auditRepository.findHeadForUpdate();
+        // Serialize concurrent writers without requiring UPDATE privilege on audit_log.
+        jdbc.execute("SELECT pg_advisory_xact_lock(" + AUDIT_CHAIN_LOCK_KEY + ")");
+        Optional<AuditEntity> head = auditRepository.findTopByOrderBySeqDesc();
 
         long nextSeq = head.map(h -> h.getSeq() + 1).orElse(1L);
         byte[] prevHash = head.map(AuditEntity::getHash).orElse(GENESIS_PREV_HASH);

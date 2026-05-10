@@ -24,6 +24,7 @@ public class PinnedRootReadinessIndicator implements HealthIndicator {
 
     @Override
     public Health health() {
+        pinnedRootHolder.reloadFromDbIfStale();
         PinnedRoot root = pinnedRootHolder.get();
         long nowMs = clock.millis();
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.erikromson.datawallet.crypto.Ed25519;
 import com.erikromson.datawallet.crypto.Random;
+import com.erikromson.datawallet.crypto.Sha256;
 import com.erikromson.datawallet.crypto.UuidV7;
 import com.erikromson.datawallet.directory.DirectoryRecord;
 import com.erikromson.datawallet.directory.DirectoryRecordCodec;
@@ -133,7 +134,7 @@ public class InitDevTrustCommand implements Callable<Integer> {
                 ? HexFormat.of().parseHex(intermediateSeedHex)
                 : Random.bytes(32);
         Ed25519.KeyPair intermediateKp = Ed25519.seedKeypair(intermediateSeed);
-        byte[] intermediateKeyId = Random.bytes(16);
+        byte[] intermediateKeyId = java.util.Arrays.copyOf(Sha256.hash(intermediateKp.publicKey()), 16);
         Path intermediateKeyFile = stateDirPath.resolve("intermediate.privkey.box");
         CliKeyStore.save(intermediateKeyFile, intermediateKp.privateKey(), passphrase);
 

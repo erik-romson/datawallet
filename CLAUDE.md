@@ -21,6 +21,7 @@ If code disagrees with a spec, the spec wins; fix the code (and the fixture if a
 bash bin/test-all.sh        # full test pipeline (Java + Flutter when client present)
 mvn verify                  # Java only
 (cd client && flutter test) # Flutter only
+bash bin/start-e2e.sh       # full Docker e2e (~5 min)
 ```
 
 The Flutter phase is conditional on `client/pubspec.yaml` existing, so Java-only changes don't require Flutter to be installed.

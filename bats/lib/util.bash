@@ -8,11 +8,12 @@
 # don't need to repeat the BATS_LIB_PATH dance.
 #
 # Provides:
-#   dw_psql <sql>          — run psql against the dev Postgres container
-#   dw_wait_for_http <url> — block until the URL responds (any non-000 code)
-#   dw_require_server      — fail-with-helpful-message if server isn't reachable
-#   dw_clean_test_data     — wipe operational tables (keeps the schema)
-#   dw_check_prereqs       — fail-fast on missing docker / java 25 / curl
+#   dw_psql <sql>                      — run psql against the dev Postgres container
+#   dw_wait_for_http <url>             — block until the URL responds (any non-000 code)
+#   dw_wait_for_actuator <url>         — block until actuator reports {"status":"UP"}
+#   dw_require_server                  — fail-with-helpful-message if server isn't reachable
+#   dw_clean_test_data                 — wipe operational tables (keeps schema + bootstrap data)
+#   dw_check_prereqs                   — fail-fast on missing docker / java 25 / curl
 #
 # Constants exported:
 #   DW_PROJECT_DIR  DW_SERVER_URL  DW_PG_*  DW_LOG_DIR  DW_STATE_DIR
@@ -34,7 +35,7 @@ bats_load_library bats-file
 
 DW_PROJECT_DIR="$(cd "$BATS_TEST_DIRNAME/.." && pwd)"
 DW_SERVER_URL="${DW_SERVER_URL:-http://localhost:8443}"
-DW_PG_CONTAINER="${DW_PG_CONTAINER:-datawallet-pg}"
+DW_PG_CONTAINER="${DW_PG_CONTAINER:-datawallet-pg-1}"
 DW_PG_USER="${DW_PG_USER:-wallet_app}"
 DW_PG_PASSWORD="${DW_PG_PASSWORD:-devpw}"
 DW_PG_DB="${DW_PG_DB:-datawallet}"
@@ -58,24 +59,36 @@ dw_wait_for_http() {
     return 1
 }
 
+dw_wait_for_actuator() {
+    local url="$1"
+    local i body
+    for i in $(seq 1 90); do
+        body=$(curl -s --max-time 2 "$url" 2>/dev/null || true)
+        if echo "$body" | grep -q '"status":"UP"'; then
+            return 0
+        fi
+        sleep 1
+    done
+    echo "actuator never reported UP at $url" >&2
+    return 1
+}
+
 dw_require_server() {
     if ! dw_wait_for_http "$DW_SERVER_URL/v1/verifiers/probe-handle/login-blob"; then
         fail "Server not reachable at $DW_SERVER_URL.
 
-Run the suite via bin/start-bats.sh, which manages the server lifecycle.
-Or in a separate terminal: bin/start.sh --dev"
+Run the suite via bin/start-e2e.sh, which manages the server lifecycle."
     fi
 }
 
 dw_clean_test_data() {
     dw_psql "DELETE FROM entry_recipients;" >/dev/null
     dw_psql "DELETE FROM entries;" >/dev/null
-    dw_psql "DELETE FROM directory_records;" >/dev/null
-    dw_psql "DELETE FROM pinned_root_history;" >/dev/null
     dw_psql "DELETE FROM sessions;" >/dev/null
     dw_psql "DELETE FROM auth_challenges;" >/dev/null
     dw_psql "DELETE FROM auth_lockouts;" >/dev/null
     dw_psql "DELETE FROM verifiers;" >/dev/null
+    dw_psql "DELETE FROM directory_records WHERE record_type='issuer';" >/dev/null
 }
 
 dw_check_prereqs() {
