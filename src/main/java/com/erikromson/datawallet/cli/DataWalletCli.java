@@ -20,7 +20,9 @@ import java.util.concurrent.Callable;
                 UploadEnvelopeCommand.class,
                 RegisterVerifierCommand.class,
                 InitDevTrustCommand.class,
-                VerifierFetchCommand.class
+                VerifierFetchCommand.class,
+                EnrollCommand.class,
+                ShareCommand.class
         },
         mixinStandardHelpOptions = true
 )
