@@ -38,7 +38,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: mvn verify
-        run: mvn -B verify --batch-mode  --no-transfer-progress
+        run: mvn -B verify´´´ --batch-mode  --no-transfer-progress
 
       - name: Save Maven repository
         if: always() && github.ref == 'refs/heads/main'
