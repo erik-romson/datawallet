@@ -124,7 +124,7 @@ fi
 
 # 10. Run the BATS suite. Failures propagate; stack stays up unless --down was given.
 echo "[start-e2e] running bats..."
-bats bats/end_to_end.bats
+bats bats/end_to_end.bats --print-output-on-failure
 
 if [ "$DOWN" -eq 1 ]; then
     echo "[start-e2e] tearing down..."

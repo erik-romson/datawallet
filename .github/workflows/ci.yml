@@ -155,7 +155,7 @@ jobs:
           fi
 
       - name: Run BATS suite
-        run: bash bin/start-bats.sh
+        run: bash bin/start-e2e.sh
 
       - name: Upload BATS logs
         if: always()
