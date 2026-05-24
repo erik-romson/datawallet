@@ -50,6 +50,9 @@ public class VerifierEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> kdfParams;
 
+    @Column(name = "discoverable", nullable = false)
+    private boolean discoverable;
+
     @Column(name = "status", nullable = false)
     private String status;
 
@@ -117,6 +120,8 @@ public class VerifierEntity {
     public byte[] getWrappedAuthPrivateKeyBlob() { return wrappedAuthPrivateKeyBlob; }
     public byte[] getKdfSalt() { return kdfSalt; }
     public Map<String, Object> getKdfParams() { return kdfParams; }
+    public boolean isDiscoverable() { return discoverable; }
+    public void setDiscoverable(boolean discoverable) { this.discoverable = discoverable; }
     public String getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
