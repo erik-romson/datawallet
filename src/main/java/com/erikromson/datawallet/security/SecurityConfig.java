@@ -49,7 +49,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/v1/admin/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/entries").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/v1/entries/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/v1/entries").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/issuers/**").permitAll()
                         .anyRequest().authenticated()
                 );

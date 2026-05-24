@@ -1,7 +1,7 @@
 package com.erikromson.datawallet.api.entry;
 
 import com.erikromson.datawallet.crypto.Ed25519;
-import com.erikromson.datawallet.crypto.Sha256;
+import com.erikromson.datawallet.crypto.Random;
 import com.erikromson.datawallet.directory.DirectoryRecord;
 import com.erikromson.datawallet.directory.DirectoryRecordCodec;
 import com.erikromson.datawallet.directory.RootSignature;
@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -67,23 +68,19 @@ class EntryIngestBearerIT {
 
     @BeforeEach
     void seedIntermediateAndInstallRecords() {
-        // Clean up any prior test entries and rate-limit state that other tests may have consumed.
         jdbcTemplate.update("DELETE FROM entry_recipients WHERE entry_id = ?::uuid", BASIC_ENTRY_ID);
         jdbcTemplate.update("DELETE FROM entries WHERE entry_id = ?::uuid", BASIC_ENTRY_ID);
         jdbcTemplate.update("DELETE FROM rate_limits");
 
-        // Clean up prior test directory records (keeping fixture ones)
         jdbcTemplate.update("DELETE FROM directory_records WHERE record_type = 'intermediate'");
 
         installUuid = UUID.fromString(ACME_ISSUER_UUID);
 
-        // Generate intermediate keypair
         byte[] intSeed = new byte[32];
         for (int i = 0; i < 32; i++) intSeed[i] = (byte) (i + 1);
         Ed25519.KeyPair intKp = Ed25519.seedKeypair(intSeed);
         intermediatePrivateKey = intKp.privateKey();
 
-        // Load the install's public key from the fixtures
         Path fixturesDir = resolveFixturesDir();
         try {
             JsonNode keypairsInput = JSON.readTree(fixturesDir.resolve("inputs/keypairs.json").toFile());
@@ -93,7 +90,6 @@ class EntryIngestBearerIT {
             Ed25519.KeyPair acmeKp = Ed25519.seedKeypair(acmeSeed);
             installJkt = BearerIssuerPrincipalResolver.computeJwkThumbprint(acmeKp.publicKey());
 
-            // Seed an intermediate directory record with the test intermediate key
             DirectoryRecordCodec codec = new DirectoryRecordCodec();
             long nowMs = System.currentTimeMillis();
             byte[] intKeyId = new byte[16];
@@ -116,13 +112,10 @@ class EntryIngestBearerIT {
                     new byte[16], null, intRecordBytes
             ));
 
-            // Ensure an install (issuer) directory record exists for the Acme issuer
             byte[] acmeKeyId = HEX.parseHex(directoryMeta.get("key_ids").get("acme_sign").asText());
             long validFrom = directoryMeta.get("acme_signing_key_valid_from").asLong();
             long validUntil = directoryMeta.get("acme_signing_key_valid_until").asLong();
 
-            // The issuer record already exists from the fixture resolver, but we need it
-            // in the DB for the bearer resolver's cnf.jkt validation
             var existingRecords = directoryRecordRepository.findActiveBySubjectId(installUuid);
             if (existingRecords.isEmpty()) {
                 DirectoryRecord issuerRecord = new DirectoryRecord(
@@ -151,7 +144,7 @@ class EntryIngestBearerIT {
         byte[] cborBytes = Files.readAllBytes(
                 resolveFixturesDir().resolve("envelopes/basic-1-recipient.cbor"));
 
-        String jwt = mintBearer(installUuid, installJkt);
+        String jwt = mintBearer(installUuid, installJkt, "urn:datawallet:server", 120);
 
         MvcResult result = mvc.perform(post("/v1/entries")
                         .header("Authorization", "Bearer " + jwt)
@@ -172,7 +165,6 @@ class EntryIngestBearerIT {
 
         UUID wrongUuid = UUID.randomUUID();
 
-        // We need a directory record for the wrong UUID too for the resolver to find it
         DirectoryRecordCodec codec = new DirectoryRecordCodec();
         long nowMs = System.currentTimeMillis();
         byte[] wrongKeyId = new byte[16];
@@ -202,7 +194,7 @@ class EntryIngestBearerIT {
                 null, intKeyId, wrongRecordBytes
         ));
 
-        String jwt = mintBearer(wrongUuid, wrongJkt);
+        String jwt = mintBearer(wrongUuid, wrongJkt, "urn:datawallet:server", 120);
 
         mvc.perform(post("/v1/entries")
                         .header("Authorization", "Bearer " + jwt)
@@ -211,7 +203,6 @@ class EntryIngestBearerIT {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("issuer_mismatch"));
 
-        // Cleanup
         directoryRecordRepository.deleteById(
                 new DirectoryRecordEntity.DirectoryRecordId("issuer", wrongUuid, wrongKeyId));
     }
@@ -221,7 +212,7 @@ class EntryIngestBearerIT {
         byte[] cborBytes = Files.readAllBytes(
                 resolveFixturesDir().resolve("envelopes/basic-1-recipient.cbor"));
 
-        String jwt = mintBearer(installUuid, installJkt);
+        String jwt = mintBearer(installUuid, installJkt, "urn:datawallet:server", 120);
 
         mvc.perform(post("/v1/entries")
                         .header("Authorization", "Bearer " + jwt)
@@ -229,7 +220,6 @@ class EntryIngestBearerIT {
                         .content(cborBytes))
                 .andExpect(status().isCreated());
 
-        // Same envelope again within exp
         mvc.perform(post("/v1/entries")
                         .header("Authorization", "Bearer " + jwt)
                         .contentType("application/cbor")
@@ -243,9 +233,8 @@ class EntryIngestBearerIT {
         byte[] cborBytes = Files.readAllBytes(
                 resolveFixturesDir().resolve("envelopes/basic-1-recipient.cbor"));
 
-        // Use a wrong jkt thumbprint (from a different key)
         String wrongJkt = "wrong-thumbprint-value-definitely-not-matching";
-        String jwt = mintBearer(installUuid, wrongJkt);
+        String jwt = mintBearer(installUuid, wrongJkt, "urn:datawallet:server", 120);
 
         mvc.perform(post("/v1/entries")
                         .header("Authorization", "Bearer " + jwt)
@@ -254,18 +243,155 @@ class EntryIngestBearerIT {
                 .andExpect(status().isUnauthorized());
     }
 
-    private String mintBearer(UUID uuid, String jkt) {
+    @Test
+    void wrongAudienceRejectedAt401() throws Exception {
+        byte[] cborBytes = Files.readAllBytes(
+                resolveFixturesDir().resolve("envelopes/basic-1-recipient.cbor"));
+
+        String jwt = mintBearer(installUuid, installJkt, "urn:datawallet:wrong-server", 120);
+
+        mvc.perform(post("/v1/entries")
+                        .header("Authorization", "Bearer " + jwt)
+                        .contentType("application/cbor")
+                        .content(cborBytes))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void expiredTokenRejectedAt401() throws Exception {
+        byte[] cborBytes = Files.readAllBytes(
+                resolveFixturesDir().resolve("envelopes/basic-1-recipient.cbor"));
+
+        String jwt = mintBearerWithExplicitTimes(installUuid, installJkt, "urn:datawallet:server",
+                System.currentTimeMillis() / 1000 - 600,
+                System.currentTimeMillis() / 1000 - 300);
+
+        mvc.perform(post("/v1/entries")
+                        .header("Authorization", "Bearer " + jwt)
+                        .contentType("application/cbor")
+                        .content(cborBytes))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void lifetimeExceedsFiveMinutesRejectedAt401() throws Exception {
+        byte[] cborBytes = Files.readAllBytes(
+                resolveFixturesDir().resolve("envelopes/basic-1-recipient.cbor"));
+
+        long nowSec = System.currentTimeMillis() / 1000;
+        String jwt = mintBearerWithExplicitTimes(installUuid, installJkt, "urn:datawallet:server",
+                nowSec, nowSec + 600);
+
+        mvc.perform(post("/v1/entries")
+                        .header("Authorization", "Bearer " + jwt)
+                        .contentType("application/cbor")
+                        .content(cborBytes))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void noTokenReturns401AtFilter() throws Exception {
+        byte[] cborBytes = Files.readAllBytes(
+                resolveFixturesDir().resolve("envelopes/basic-1-recipient.cbor"));
+
+        mvc.perform(post("/v1/entries")
+                        .contentType("application/cbor")
+                        .content(cborBytes))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rotateSigningKeyAuthenticatesUnderBearer() throws Exception {
+        UUID testIssuerId = UUID.randomUUID();
+        byte[] testKeyId = Random.bytes(16);
+
+        DirectoryRecordCodec codec = new DirectoryRecordCodec();
+        long nowMs = System.currentTimeMillis();
+        byte[] intKeyId = new byte[16];
+        for (int i = 0; i < 16; i++) intKeyId[i] = (byte) 0xAA;
+
+        byte[] issuerSeed = new byte[32];
+        for (int i = 0; i < 32; i++) issuerSeed[i] = (byte) (i + 100);
+        Ed25519.KeyPair issuerKp = Ed25519.seedKeypair(issuerSeed);
+        String issuerJkt = BearerIssuerPrincipalResolver.computeJwkThumbprint(issuerKp.publicKey());
+
+        DirectoryRecord issuerRecord = new DirectoryRecord(
+                1, "issuer", uuidToBytes(testIssuerId), testKeyId,
+                issuerKp.publicKey(), "sign", "active",
+                nowMs - 86400_000, nowMs + 86400_000, nowMs - 86400_000,
+                Collections.emptyList(), intKeyId, new byte[64]
+        );
+        byte[] issuerRecordBytes = codec.encode(issuerRecord);
+
+        directoryRecordRepository.save(new DirectoryRecordEntity(
+                "issuer", testIssuerId, testKeyId,
+                "active", Instant.ofEpochMilli(nowMs - 86400_000),
+                Instant.ofEpochMilli(nowMs + 86400_000),
+                Instant.ofEpochMilli(nowMs - 86400_000),
+                null, intKeyId, issuerRecordBytes
+        ));
+
+        String jwt = mintBearer(testIssuerId, issuerJkt, "urn:datawallet:server", 120);
+
+        String dto = """
+                {
+                  "new_public_key": "%s",
+                  "new_key_id": "%s",
+                  "old_key_id": "%s"
+                }
+                """.formatted(
+                B64URL.encodeToString(new byte[32]),
+                B64URL.encodeToString(Random.bytes(16)),
+                B64URL.encodeToString(testKeyId)
+        );
+
+        mvc.perform(post("/v1/issuers/" + testIssuerId + "/rotate-signing-key")
+                        .header("Authorization", "Bearer " + jwt)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(dto))
+                .andExpect(status().isNoContent());
+
+        directoryRecordRepository.deleteById(
+                new DirectoryRecordEntity.DirectoryRecordId("issuer", testIssuerId, testKeyId));
+    }
+
+    @Test
+    void rotateSigningKeyWithoutTokenReturns401() throws Exception {
+        String dto = """
+                {
+                  "new_public_key": "%s",
+                  "new_key_id": "%s",
+                  "old_key_id": "%s"
+                }
+                """.formatted(
+                B64URL.encodeToString(new byte[32]),
+                B64URL.encodeToString(Random.bytes(16)),
+                B64URL.encodeToString(Random.bytes(16))
+        );
+
+        mvc.perform(post("/v1/issuers/" + UUID.randomUUID() + "/rotate-signing-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(dto))
+                .andExpect(status().isUnauthorized());
+    }
+
+    private String mintBearer(UUID uuid, String jkt, String audience, long lifetimeSec) {
+        long nowSec = System.currentTimeMillis() / 1000;
+        return mintBearerWithExplicitTimes(uuid, jkt, audience, nowSec, nowSec + lifetimeSec);
+    }
+
+    private String mintBearerWithExplicitTimes(UUID uuid, String jkt, String audience,
+                                                long iatSec, long expSec) {
         try {
-            long nowSec = System.currentTimeMillis() / 1000;
             Map<String, Object> header = new LinkedHashMap<>();
             header.put("alg", "EdDSA");
             header.put("typ", "JWT");
 
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("iss", "urn:datawallet:issuer:" + uuid);
-            payload.put("aud", "urn:datawallet:server");
-            payload.put("exp", nowSec + 120);
-            payload.put("iat", nowSec);
+            payload.put("aud", audience);
+            payload.put("exp", expSec);
+            payload.put("iat", iatSec);
             payload.put("cnf", Map.of("jkt", jkt));
 
             String headerB64 = B64URL.encodeToString(JSON.writeValueAsBytes(header));

@@ -38,6 +38,11 @@ public class BearerIssuerPrincipalResolver implements IssuerPrincipalResolver {
 
     @Override
     public Optional<UUID> resolve(HttpServletRequest request) {
+        UUID cached = (UUID) request.getAttribute(IssuerBearerAuthFilter.ISSUER_ID_ATTR);
+        if (cached != null) {
+            return Optional.of(cached);
+        }
+
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith(BEARER_PREFIX)) {
             return Optional.empty();

@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.time.Clock;
 
@@ -42,7 +43,7 @@ public class IssuerSecurityConfig {
     @Bean
     @Order(1)
     @ConditionalOnProperty(name = "datawallet.security.issuer-mtls", havingValue = "true", matchIfMissing = true)
-    public SecurityFilterChain issuerFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain issuerMtlsFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/v1/entries/**", "/v1/issuers/**")
                 .csrf(AbstractHttpConfigurer::disable)
@@ -57,7 +58,35 @@ public class IssuerSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/v1/entries").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/v1/entries/**").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/v1/entries").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/v1/issuers/**").authenticated()
+                        .anyRequest().denyAll()
+                );
+        return http.build();
+    }
+
+    @Bean
+    @Order(1)
+    @ConditionalOnExpression(
+            "${datawallet.security.issuer-mtls:true} == false "
+            + "&& ${datawallet.security.issuer-bearer.enabled:false} == true"
+    )
+    public SecurityFilterChain issuerBearerFilterChain(HttpSecurity http,
+                                                       BearerIssuerPrincipalResolver bearerResolver) throws Exception {
+        http
+                .securityMatcher("/v1/entries/**", "/v1/issuers/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .headers(headers -> headers.cacheControl(cache -> cache.disable()))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                )
+                .addFilterBefore(new IssuerBearerAuthFilter(bearerResolver),
+                        UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/v1/entries").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/v1/entries/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/v1/issuers/**").authenticated()
                         .anyRequest().denyAll()
                 );

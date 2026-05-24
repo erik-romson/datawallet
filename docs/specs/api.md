@@ -117,13 +117,15 @@ Server enforces: handle regex (§ `crypto-formats.md`), `kdf_params` ≥ floor (
 
 ### 3.3 Issuer ingest & lifecycle
 
-mTLS required on all paths in this section. The client cert's `CN` (or `subjectAltName.URI` of the form `urn:datawallet:issuer:<issuer_id>`) declares the issuer principal. The server matches that principal to `envelope.issuer_id`.
+Issuer authentication: **mTLS** (default) or **bearer JWT** (mobile profile). Exactly one mode is active per deployment, controlled by `datawallet.security.issuer-mtls` and `datawallet.security.issuer-bearer.enabled` (mutually exclusive; both `true` is a startup error).
+
+- **mTLS mode** (`issuer-mtls=true`, default): the client cert's `CN` (or `subjectAltName.URI` of the form `urn:datawallet:issuer:<issuer_id>`) declares the issuer principal. The server matches that principal to `envelope.issuer_id`.
+- **Bearer mode** (`issuer-mtls=false`, `issuer-bearer.enabled=true`): the issuer sends `Authorization: Bearer <jwt>` where the JWT is minted by the intermediate signing service. JWT shape: `alg=EdDSA`, `iss=urn:datawallet:issuer:<issuer_id>`, `aud` exact-match against configured audience, `exp` with max lifetime 5 min, `cnf.jkt` = JWK thumbprint of the issuer's Ed25519 signing key. The server verifies the JWT signature against the active intermediate public key, validates `aud` and timing, and binds the issuer via `cnf.jkt` to the directory-registered signing key. Bearer is **transport auth only** — envelope integrity still rests on the per-envelope Ed25519 signature verified at ingest.
 
 | Method | Path | Body | Response |
 |--------|------|------|----------|
 | `POST` | `/v1/entries`             | raw canonical CBOR envelope | `201 Created` + `{entry_id, version}` (JSON) |
 | `PUT`  | `/v1/entries/{entry_id}`  | raw canonical CBOR envelope | `200 OK` + `{entry_id, version}` (JSON) |
-| `GET`  | `/v1/entries`             | — | `IssuerEntryList` (JSON) — issuer's own entries (`is_current=true`), for re-keying |
 | `POST` | `/v1/issuers/{issuer_id}/rotate-signing-key` | `{new_public_key, new_key_id, old_key_id}` | `204 No Content` (operator publishes the directory record out-of-band) |
 
 Allow-list update == `PUT` with a new envelope whose `version` field equals `previous + 1` and whose canonical CBOR carries a fresh data key + re-encrypted ciphertext (§5.9 of plan). Server enforces monotonic `version`, rejects rewrap-only attempts (heuristic: `ciphertext` hash unchanged from prior version triggers `409 Conflict` with `code: rewrap_only_forbidden`).

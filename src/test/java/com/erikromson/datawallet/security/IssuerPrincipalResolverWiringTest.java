@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +31,13 @@ class IssuerPrincipalResolverWiringTest {
             var resolvers = context.getBeansOfType(IssuerPrincipalResolver.class);
             assertThat(resolvers).hasSize(1);
             assertThat(resolvers.values().iterator().next()).isInstanceOf(X509IssuerPrincipalResolver.class);
+        }
+
+        @Test
+        void mtlsFilterChainIsPresent() {
+            var chains = context.getBeansOfType(SecurityFilterChain.class);
+            assertThat(chains).containsKey("issuerMtlsFilterChain");
+            assertThat(chains).doesNotContainKey("issuerBearerFilterChain");
         }
     }
 
@@ -73,6 +81,13 @@ class IssuerPrincipalResolverWiringTest {
             var resolvers = context.getBeansOfType(IssuerPrincipalResolver.class);
             assertThat(resolvers).hasSize(1);
             assertThat(resolvers.values().iterator().next()).isInstanceOf(BearerIssuerPrincipalResolver.class);
+        }
+
+        @Test
+        void bearerFilterChainIsPresent() {
+            var chains = context.getBeansOfType(SecurityFilterChain.class);
+            assertThat(chains).containsKey("issuerBearerFilterChain");
+            assertThat(chains).doesNotContainKey("issuerMtlsFilterChain");
         }
     }
 

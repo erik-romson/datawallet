@@ -86,6 +86,7 @@ flowchart LR
 - Web support is best-effort only. Browser memory, storage, and XSS exposure are weaker than native platform keystore protections.
 - Display-name impersonation: UIs rendering `display_name` prominently can let a valid but malicious actor pose as another; identity decisions must bind to stable IDs and fingerprints, not the display field.
 - Audit logs are server-visible metadata. They are in-scope for integrity (tamper-evidence) but not for confidentiality beyond what the wallet already sees.
+- Bearer JWT auth (mobile profile) is **transport auth only**: it identifies the issuer principal for the wallet's access-control checks but does not replace the per-envelope Ed25519 signature that provides content authenticity. Mitigations: `alg=EdDSA` (no algorithm confusion); `aud` exact-match (prevents cross-service replay); `exp` max 5 min lifetime (limits token window); `cnf.jkt` binds the JWT to the issuer's directory-registered signing key (prevents key substitution); the intermediate signing service can denylist compromised issuers. A leaked JWT is usable only until expiry and only against the matching `aud` server; the per-envelope signature remains the trust anchor.
 
 ## 2. Actors and identity model
 
