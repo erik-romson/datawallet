@@ -38,6 +38,7 @@ class MobileEnvelopeFixtureTest {
     private static JsonNode timestamps;
     private static JsonNode mobileMeta;
     private static JsonNode directoryMeta;
+    private static JsonNode binaryVerifiedMeta;
 
     @BeforeAll
     static void loadFixtures() throws IOException {
@@ -47,6 +48,8 @@ class MobileEnvelopeFixtureTest {
         timestamps = JSON.readTree(fixturesDir.resolve("inputs/timestamps.json").toFile());
         mobileMeta = JSON.readTree(fixturesDir.resolve("envelopes/mobile-built/mobile_meta.json").toFile());
         directoryMeta = JSON.readTree(fixturesDir.resolve("directory/directory_meta.json").toFile());
+        binaryVerifiedMeta = JSON.readTree(
+                fixturesDir.resolve("envelopes/server-side-verified/binary-payload.json").toFile());
     }
 
     private static Ed25519.KeyPair mobileSignKeyPair() {
@@ -193,6 +196,78 @@ class MobileEnvelopeFixtureTest {
             byte[] reencoded = codec.encode(env);
             assertThat(reencoded).as("round-trip for %s", name).isEqualTo(bytes);
         }
+    }
+
+    @Test
+    void binaryPayloadEnvelopeParsesAndVerifies() throws IOException {
+        byte[] bytes = Files.readAllBytes(
+                fixturesDir.resolve("envelopes/mobile-built/binary-payload.cbor"));
+        EnvelopeCodec codec = new EnvelopeCodec();
+        EnvelopeVerifier verifier = new EnvelopeVerifier(codec, mobileKeyResolver());
+        SharedEnvelope env = verifier.verify(bytes);
+
+        assertThat(env.version()).isEqualTo(1);
+        assertThat(env.issuerLabel()).isEqualTo("Mobile Install");
+        assertThat(env.description()).isEqualTo("Binary payload test credential");
+        assertThat(env.recipientWrappings()).hasSize(1);
+    }
+
+    @Test
+    void binaryPayloadDecryptEndToEnd() throws IOException {
+        EnvelopeCodec codec = new EnvelopeCodec();
+        EnvelopeVerifier verifier = new EnvelopeVerifier(codec, mobileKeyResolver());
+
+        byte[] envelopeBytes = Files.readAllBytes(
+                fixturesDir.resolve("envelopes/mobile-built/binary-payload.cbor"));
+        SharedEnvelope env = verifier.verify(envelopeBytes);
+
+        byte[] aliceSeed = HEX.parseHex(keypairsInput.get("alice_enc").get("seed_hex").asText());
+        X25519.KeyPair aliceKp = X25519.seedKeypair(aliceSeed);
+
+        byte[] wrappedDataKey = env.recipientWrappings().getFirst().wrappedDataKey();
+        byte[] dataKey = com.erikromson.datawallet.crypto.SealedBox.open(
+                wrappedDataKey, aliceKp.publicKey(), aliceKp.secretKey());
+        byte[] decrypted = SecretBox.open(env.ciphertext(), env.ciphertextNonce(), dataKey);
+
+        byte[] expected = HEX.parseHex(
+                binaryVerifiedMeta.get("binary-payload").get("expected_payload_bytes_hex").asText());
+        assertThat(decrypted).isEqualTo(expected);
+    }
+
+    @Test
+    void binaryPayloadMultiEnvelopeParsesAndVerifies() throws IOException {
+        byte[] bytes = Files.readAllBytes(
+                fixturesDir.resolve("envelopes/mobile-built/binary-payload-multi.cbor"));
+        EnvelopeCodec codec = new EnvelopeCodec();
+        EnvelopeVerifier verifier = new EnvelopeVerifier(codec, mobileKeyResolver());
+        SharedEnvelope env = verifier.verify(bytes);
+
+        assertThat(env.version()).isEqualTo(1);
+        assertThat(env.issuerLabel()).isEqualTo("Mobile Install");
+        assertThat(env.description()).isEqualTo("Binary payload multi-recipient test credential");
+        assertThat(env.recipientWrappings()).hasSize(2);
+    }
+
+    @Test
+    void binaryPayloadMultiDecryptEndToEnd() throws IOException {
+        EnvelopeCodec codec = new EnvelopeCodec();
+        EnvelopeVerifier verifier = new EnvelopeVerifier(codec, mobileKeyResolver());
+
+        byte[] envelopeBytes = Files.readAllBytes(
+                fixturesDir.resolve("envelopes/mobile-built/binary-payload-multi.cbor"));
+        SharedEnvelope env = verifier.verify(envelopeBytes);
+
+        byte[] aliceSeed = HEX.parseHex(keypairsInput.get("alice_enc").get("seed_hex").asText());
+        X25519.KeyPair aliceKp = X25519.seedKeypair(aliceSeed);
+
+        byte[] wrappedDataKey = env.recipientWrappings().getFirst().wrappedDataKey();
+        byte[] dataKey = com.erikromson.datawallet.crypto.SealedBox.open(
+                wrappedDataKey, aliceKp.publicKey(), aliceKp.secretKey());
+        byte[] decrypted = SecretBox.open(env.ciphertext(), env.ciphertextNonce(), dataKey);
+
+        byte[] expected = HEX.parseHex(
+                binaryVerifiedMeta.get("binary-payload-multi").get("expected_payload_bytes_hex").asText());
+        assertThat(decrypted).isEqualTo(expected);
     }
 
     private static UUID readEntryId(String uuidName) throws IOException {

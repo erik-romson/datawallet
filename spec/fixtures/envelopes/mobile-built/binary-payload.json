@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "entry_id": "01942e9c90007262a262626262626262",
+  "issuer_id": "bb9c6b6e7ffa2131869d72640c78bcb5",
+  "signature": "b712d0b11bb55dafa363559e657d0a329ce4efcd3cb210138aab10caaa791efe76f50c9c2cf44117be71ffff018fd72967eacbe3d6888bf25df429a1c0185502",
+  "ciphertext": "edc0150ff0e0db340dd72ba70b8bbfc710089e7972fcb116f8c2df9f6a2eb5c5d45d8f17b4fd011e05a6cba22cc58317372140d9eef23fabf6886ca559e5f528d3be6fae734a776de3baf74092b5f1d2e31fa802e99aae3731ebe32ac8cef25c2e1685bcb414bd344bfd6a9368f35d1f",
+  "created_at": 1735862400000,
+  "description": "Binary payload test credential",
+  "issuer_label": "Mobile Install",
+  "ciphertext_alg": "xsalsa20poly1305",
+  "ciphertext_hash": "35a077f35b33fd6af302198adeb5ef5b2d7df991504278df21bf8daf8019ed10",
+  "ciphertext_nonce": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+  "recipient_wrappings": [
+    {
+      "verifier_id": "c8ea8c7380fca25e295df2067404b036",
+      "verifier_key_id": "d06d966c0744a06b5cf1d68c583d2217",
+      "wrapped_data_key": "d3b144c5c9741d60be1e66a41278b6ee302e03e90f5a3d6a74fdc8091f3f8a070e526f8ec53db697573e9f9a3c4e57c2be87a171d17576f41b7074df3efc9f2048460ce1ad3e9ff088b30b6e5ed97ed0"
+    }
+  ],
+  "issuer_signing_key_id": "9c1165e101c1bae257f9c91a94fbb517"
+}

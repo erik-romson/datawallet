@@ -198,6 +198,12 @@ def encrypt_plaintext(plaintext: str, data_key: bytes, nonce: bytes) -> tuple[by
     return ct, ct_hash
 
 
+def encrypt_bytes(payload: bytes, data_key: bytes, nonce: bytes) -> tuple[bytes, bytes]:
+    ct = nacl.bindings.crypto_secretbox(payload, nonce, data_key)
+    ct_hash = sha256(ct)
+    return ct, ct_hash
+
+
 def crypto_box_seal_deterministic(message: bytes, recipient_pub: bytes, ephemeral_seed: bytes) -> bytes:
     eph_pub, eph_priv = nacl.bindings.crypto_box_seed_keypair(ephemeral_seed)
     nonce = nacl.bindings.crypto_generichash_blake2b_salt_personal(eph_pub + recipient_pub, digest_size=24)
@@ -1137,6 +1143,103 @@ def generate(out_dir: Path):
     track("envelopes/mobile-built/single-recipient.json", "envelope",
           "JSON sidecar for mobile-built single-recipient")
 
+    # ── Binary-payload mobile-built envelopes ──────────────────────────
+    # 96-byte deterministic binary blob (stand-in for egnedata zip)
+    binary_payload = (
+        sha256(b"egnedata-zip-stub-v1") +
+        sha256(b"egnedata-zip-stub-v2") +
+        sha256(b"egnedata-zip-stub-v3")
+    )
+
+    data_key_binary = hex_to_bytes("d5" * 32)
+    ct_nonce_binary = hex_to_bytes("e5" * 24)
+    eph_seed_binary_alice = hex_to_bytes("b9" * 32)
+
+    data_key_binary_multi = hex_to_bytes("d6" * 32)
+    ct_nonce_binary_multi = hex_to_bytes("e6" * 24)
+    eph_seed_binary_multi_alice = hex_to_bytes("ba" * 32)
+    eph_seed_binary_multi_bob = hex_to_bytes("bb" * 32)
+
+    # binary-payload: single recipient (alice)
+    ct_binary, ct_hash_binary = encrypt_bytes(binary_payload, data_key_binary, ct_nonce_binary)
+    wrapped_dk_binary_alice = wrap_data_key_for_recipient(
+        data_key_binary, keys["alice_enc"]["public"], eph_seed_binary_alice)
+    binary_wrappings = [{
+        "verifier_id": alice_verifier_id,
+        "verifier_key_id": key_ids["alice_enc"],
+        "wrapped_data_key": wrapped_dk_binary_alice,
+    }]
+    binary_final, binary_signed, _ = build_envelope(
+        version=1,
+        entry_id=uuid_map["entry_binary"],
+        issuer_id=mobile_install_subject_id,
+        issuer_label="Mobile Install",
+        issuer_signing_key_id=key_ids["mobile_install_sign"],
+        created_at=timestamps["t_envelope_v2"],
+        description="Binary payload test credential",
+        ciphertext_alg="xsalsa20poly1305",
+        ciphertext_nonce=ct_nonce_binary,
+        ciphertext=ct_binary,
+        ciphertext_hash=ct_hash_binary,
+        recipient_wrappings=binary_wrappings,
+        signing_key=keys["mobile_install_sign"]["private"],
+    )
+    write_binary(out_dir / "envelopes" / "mobile-built" / "binary-payload.cbor", binary_final)
+    write_binary(out_dir / "envelopes" / "mobile-built" / "binary-payload.signed", binary_signed)
+    binary_envelope_map = cbor2.loads(binary_final)
+    write_json(out_dir / "envelopes" / "mobile-built" / "binary-payload.json",
+               envelope_to_json_sidecar(binary_envelope_map))
+    track("envelopes/mobile-built/binary-payload.cbor", "envelope",
+          "Mobile-built envelope: binary payload, single recipient (alice)")
+    track("envelopes/mobile-built/binary-payload.signed", "envelope",
+          "Signed bytes for mobile-built binary-payload")
+    track("envelopes/mobile-built/binary-payload.json", "envelope",
+          "JSON sidecar for mobile-built binary-payload")
+
+    # binary-payload-multi: alice + bob
+    ct_binary_multi, ct_hash_binary_multi = encrypt_bytes(
+        binary_payload, data_key_binary_multi, ct_nonce_binary_multi)
+    binary_multi_wrappings = [
+        {
+            "verifier_id": alice_verifier_id,
+            "verifier_key_id": key_ids["alice_enc"],
+            "wrapped_data_key": wrap_data_key_for_recipient(
+                data_key_binary_multi, keys["alice_enc"]["public"], eph_seed_binary_multi_alice),
+        },
+        {
+            "verifier_id": bob_verifier_id,
+            "verifier_key_id": key_ids["bob_enc"],
+            "wrapped_data_key": wrap_data_key_for_recipient(
+                data_key_binary_multi, keys["bob_enc"]["public"], eph_seed_binary_multi_bob),
+        },
+    ]
+    binary_multi_final, binary_multi_signed, _ = build_envelope(
+        version=1,
+        entry_id=uuid_map["entry_binary"],
+        issuer_id=mobile_install_subject_id,
+        issuer_label="Mobile Install",
+        issuer_signing_key_id=key_ids["mobile_install_sign"],
+        created_at=timestamps["t_envelope_v2"],
+        description="Binary payload multi-recipient test credential",
+        ciphertext_alg="xsalsa20poly1305",
+        ciphertext_nonce=ct_nonce_binary_multi,
+        ciphertext=ct_binary_multi,
+        ciphertext_hash=ct_hash_binary_multi,
+        recipient_wrappings=binary_multi_wrappings,
+        signing_key=keys["mobile_install_sign"]["private"],
+    )
+    write_binary(out_dir / "envelopes" / "mobile-built" / "binary-payload-multi.cbor", binary_multi_final)
+    write_binary(out_dir / "envelopes" / "mobile-built" / "binary-payload-multi.signed", binary_multi_signed)
+    binary_multi_envelope_map = cbor2.loads(binary_multi_final)
+    write_json(out_dir / "envelopes" / "mobile-built" / "binary-payload-multi.json",
+               envelope_to_json_sidecar(binary_multi_envelope_map))
+    track("envelopes/mobile-built/binary-payload-multi.cbor", "envelope",
+          "Mobile-built envelope: binary payload, two recipients (alice, bob)")
+    track("envelopes/mobile-built/binary-payload-multi.signed", "envelope",
+          "Signed bytes for mobile-built binary-payload-multi")
+    track("envelopes/mobile-built/binary-payload-multi.json", "envelope",
+          "JSON sidecar for mobile-built binary-payload-multi")
+
     mobile_meta = {
         "single-recipient": {
             "data_key_hex": bytes_to_hex(data_key_mobile),
@@ -1145,6 +1248,24 @@ def generate(out_dir: Path):
             "issuer_signing_key": "mobile_install_sign",
             "issuer_id_hex": bytes_to_hex(mobile_install_subject_id),
             "recipients": ["alice_enc"],
+        },
+        "binary-payload": {
+            "data_key_hex": bytes_to_hex(data_key_binary),
+            "ciphertext_nonce_hex": bytes_to_hex(ct_nonce_binary),
+            "payload_bytes_hex": bytes_to_hex(binary_payload),
+            "issuer_signing_key": "mobile_install_sign",
+            "issuer_id_hex": bytes_to_hex(mobile_install_subject_id),
+            "recipients": ["alice_enc"],
+            "description": "Binary payload test credential",
+        },
+        "binary-payload-multi": {
+            "data_key_hex": bytes_to_hex(data_key_binary_multi),
+            "ciphertext_nonce_hex": bytes_to_hex(ct_nonce_binary_multi),
+            "payload_bytes_hex": bytes_to_hex(binary_payload),
+            "issuer_signing_key": "mobile_install_sign",
+            "issuer_id_hex": bytes_to_hex(mobile_install_subject_id),
+            "recipients": ["alice_enc", "bob_enc"],
+            "description": "Binary payload multi-recipient test credential",
         },
     }
     write_json(out_dir / "envelopes" / "mobile-built" / "mobile_meta.json", mobile_meta)
@@ -1164,6 +1285,26 @@ def generate(out_dir: Path):
                verified_meta)
     track("envelopes/server-side-verified/single-recipient.json", "envelope",
           "Server-side verified: expected unwrap for mobile single-recipient")
+
+    # server-side-verified: expected payload bytes for binary fixtures
+    binary_verified_meta = {
+        "binary-payload": {
+            "expected_payload_bytes_hex": bytes_to_hex(binary_payload),
+            "data_key_hex": bytes_to_hex(data_key_binary),
+            "issuer_signing_key": "mobile_install_sign",
+            "issuer_id_hex": bytes_to_hex(mobile_install_subject_id),
+        },
+        "binary-payload-multi": {
+            "expected_payload_bytes_hex": bytes_to_hex(binary_payload),
+            "data_key_hex": bytes_to_hex(data_key_binary_multi),
+            "issuer_signing_key": "mobile_install_sign",
+            "issuer_id_hex": bytes_to_hex(mobile_install_subject_id),
+        },
+    }
+    write_json(out_dir / "envelopes" / "server-side-verified" / "binary-payload.json",
+               binary_verified_meta)
+    track("envelopes/server-side-verified/binary-payload.json", "envelope",
+          "Server-side verified: expected payload bytes for mobile binary fixtures")
 
     # Directory record metadata
     dir_meta = {

@@ -22,5 +22,11 @@
     "ts_ms": 1735862400000,
     "rand_hex": "6d6d6d6d6d6d6d6d6d6d6d6d",
     "expected_hex": "0194297634007d6dad6d6d6d6d6d6d6d"
+  },
+  {
+    "name": "entry_binary",
+    "ts_ms": 1735948800000,
+    "rand_hex": "626262626262626262626262",
+    "expected_hex": "01942e9c90007262a262626262626262"
   }
 ]

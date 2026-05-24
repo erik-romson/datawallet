@@ -18,5 +18,10 @@
     "name": "entry_mobile",
     "ts_ms": 1735862400000,
     "rand_hex": "6d6d6d6d6d6d6d6d6d6d6d6d"
+  },
+  {
+    "name": "entry_binary",
+    "ts_ms": 1735948800000,
+    "rand_hex": "626262626262626262626262"
   }
 ]

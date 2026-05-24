@@ -1,0 +1,14 @@
+{
+  "binary-payload": {
+    "expected_payload_bytes_hex": "bbf6a2cafbff4ceb798889af638e977db12a0395dc5db37b1814e09f2151d55a28f82ec63a8f3ecbdcbfee2df177286e9f9bf5559cfcae670f710e8a9ebbe613384c0cdc8524212389feab23dc4feba612463f7522fe80b1af3eb4418ad2ce07",
+    "data_key_hex": "d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5d5",
+    "issuer_signing_key": "mobile_install_sign",
+    "issuer_id_hex": "bb9c6b6e7ffa2131869d72640c78bcb5"
+  },
+  "binary-payload-multi": {
+    "expected_payload_bytes_hex": "bbf6a2cafbff4ceb798889af638e977db12a0395dc5db37b1814e09f2151d55a28f82ec63a8f3ecbdcbfee2df177286e9f9bf5559cfcae670f710e8a9ebbe613384c0cdc8524212389feab23dc4feba612463f7522fe80b1af3eb4418ad2ce07",
+    "data_key_hex": "d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6d6",
+    "issuer_signing_key": "mobile_install_sign",
+    "issuer_id_hex": "bb9c6b6e7ffa2131869d72640c78bcb5"
+  }
+}

@@ -189,8 +189,44 @@
       "description": "Wrong issuer signing key"
     },
     {
+      "path": "envelopes/mobile-built/binary-payload-multi.cbor",
+      "sha256": "6c117239c3427cf448df05f605a2a26d286adbf0a5b72ebde328a8e2bd45924a",
+      "category": "envelope",
+      "description": "Mobile-built envelope: binary payload, two recipients (alice, bob)"
+    },
+    {
+      "path": "envelopes/mobile-built/binary-payload-multi.json",
+      "sha256": "2c92f56e2cdb552ac0951613e10c54bb5806b09870b250995995ea47c7c66768",
+      "category": "envelope",
+      "description": "JSON sidecar for mobile-built binary-payload-multi"
+    },
+    {
+      "path": "envelopes/mobile-built/binary-payload-multi.signed",
+      "sha256": "f9c6735fcada011bd52a72a0d140daec63cdc4e346cae8bee56ef3a3f04489ae",
+      "category": "envelope",
+      "description": "Signed bytes for mobile-built binary-payload-multi"
+    },
+    {
+      "path": "envelopes/mobile-built/binary-payload.cbor",
+      "sha256": "5863019510ba36f7e4ee515e5adba17291d81a196e82a11ebd236332b752f3cc",
+      "category": "envelope",
+      "description": "Mobile-built envelope: binary payload, single recipient (alice)"
+    },
+    {
+      "path": "envelopes/mobile-built/binary-payload.json",
+      "sha256": "1186652a2417d447e07b0fe138e3294d110082baab9b0a44d1519b7831d797c3",
+      "category": "envelope",
+      "description": "JSON sidecar for mobile-built binary-payload"
+    },
+    {
+      "path": "envelopes/mobile-built/binary-payload.signed",
+      "sha256": "49c181d6d6a1bbb1b01002c46d88bb9941e4471518520ce90461eb82d9f14c99",
+      "category": "envelope",
+      "description": "Signed bytes for mobile-built binary-payload"
+    },
+    {
       "path": "envelopes/mobile-built/mobile_meta.json",
-      "sha256": "d1f2311e985695a59c9c0ee4ee398f4ae2dabf74a0ebd343ffb6d6b34c3a774e",
+      "sha256": "2af70dbb1be9520b1fa068a31433db4cf3944753958a403496782b9520d392c0",
       "category": "envelope",
       "description": "Mobile-built envelope generation metadata"
     },
@@ -211,6 +247,12 @@
       "sha256": "e2a9d741c1f6b070c2ec2ca8561416dce53f6e349ff8fb417fec1c544e1132ae",
       "category": "envelope",
       "description": "Signed bytes for mobile-built single-recipient"
+    },
+    {
+      "path": "envelopes/server-side-verified/binary-payload.json",
+      "sha256": "da91435251a6d3aaf3935e3e24f62bb0464a770d0eb9b5c876673cc52c6eb5fa",
+      "category": "envelope",
+      "description": "Server-side verified: expected payload bytes for mobile binary fixtures"
     },
     {
       "path": "envelopes/server-side-verified/single-recipient.json",
@@ -304,13 +346,13 @@
     },
     {
       "path": "inputs/uuids.expected.json",
-      "sha256": "4db5df02a29054e1f6b6f90eec64a6fe988cc163771210cb85ef3336158fcee9",
+      "sha256": "18484fcf0318b10d01fc16416f6034c5b5f150af8e5455345f6f871d980aaf93",
       "category": "input",
       "description": "Expected UUIDv7 results"
     },
     {
       "path": "inputs/uuids.json",
-      "sha256": "7f63cfcc4d74e3b8c7fa6b8f37c2c1e53b066be90752757b211a8621592ff873",
+      "sha256": "f780dd968e4821b2bf85e5677640597012c92fb547b41caf6503b64bff53fc6b",
       "category": "input",
       "description": "Input file: inputs/uuids.json"
     },

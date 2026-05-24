@@ -212,6 +212,88 @@ void main() {
       }
     });
   });
+
+  group('BinaryPayloadFixture', () {
+    late Map<String, dynamic> binaryVerifiedMeta;
+
+    setUp(() {
+      binaryVerifiedMeta = _readJson(
+          '${fixturesDir.path}/envelopes/server-side-verified/binary-payload.json');
+    });
+
+    test('binary-payload envelope parses and verifies', () {
+      final bytes =
+          File('${fixturesDir.path}/envelopes/mobile-built/binary-payload.cbor')
+              .readAsBytesSync();
+      final verifier = EnvelopeVerifier(sodium, mobileKeyResolver());
+      final env = verifier.verify(bytes);
+
+      expect(env.version, equals(1));
+      expect(env.issuerLabel, equals('Mobile Install'));
+      expect(env.description, equals('Binary payload test credential'));
+      expect(env.recipientWrappings, hasLength(1));
+    });
+
+    test('binary-payload decrypt end-to-end', () {
+      final verifier = EnvelopeVerifier(sodium, mobileKeyResolver());
+      final envelopeBytes =
+          File('${fixturesDir.path}/envelopes/mobile-built/binary-payload.cbor')
+              .readAsBytesSync();
+      final env = verifier.verify(envelopeBytes);
+
+      final aliceSeed =
+          _fromHex(keypairsInput['alice_enc']['seed_hex'] as String);
+      final aliceKp = X25519.seedKeyPair(sodium, aliceSeed);
+
+      final wrappedDataKey = env.recipientWrappings.first.wrappedDataKey;
+      final dataKey = SealedBox.open(
+          sodium, wrappedDataKey, aliceKp.publicKey, aliceKp.secretKey);
+      final decrypted =
+          SecretBoxCrypto.open(sodium, env.ciphertext, env.ciphertextNonce, dataKey);
+
+      final expected = _fromHex(
+          (binaryVerifiedMeta['binary-payload'] as Map<String, dynamic>)['expected_payload_bytes_hex']
+              as String);
+      expect(decrypted, equals(expected));
+    });
+
+    test('binary-payload-multi envelope parses and verifies', () {
+      final bytes =
+          File('${fixturesDir.path}/envelopes/mobile-built/binary-payload-multi.cbor')
+              .readAsBytesSync();
+      final verifier = EnvelopeVerifier(sodium, mobileKeyResolver());
+      final env = verifier.verify(bytes);
+
+      expect(env.version, equals(1));
+      expect(env.issuerLabel, equals('Mobile Install'));
+      expect(env.description,
+          equals('Binary payload multi-recipient test credential'));
+      expect(env.recipientWrappings, hasLength(2));
+    });
+
+    test('binary-payload-multi decrypt end-to-end (alice)', () {
+      final verifier = EnvelopeVerifier(sodium, mobileKeyResolver());
+      final envelopeBytes =
+          File('${fixturesDir.path}/envelopes/mobile-built/binary-payload-multi.cbor')
+              .readAsBytesSync();
+      final env = verifier.verify(envelopeBytes);
+
+      final aliceSeed =
+          _fromHex(keypairsInput['alice_enc']['seed_hex'] as String);
+      final aliceKp = X25519.seedKeyPair(sodium, aliceSeed);
+
+      final wrappedDataKey = env.recipientWrappings.first.wrappedDataKey;
+      final dataKey = SealedBox.open(
+          sodium, wrappedDataKey, aliceKp.publicKey, aliceKp.secretKey);
+      final decrypted =
+          SecretBoxCrypto.open(sodium, env.ciphertext, env.ciphertextNonce, dataKey);
+
+      final expected = _fromHex(
+          (binaryVerifiedMeta['binary-payload-multi'] as Map<String, dynamic>)['expected_payload_bytes_hex']
+              as String);
+      expect(decrypted, equals(expected));
+    });
+  });
 }
 
 Uint8List _fromHex(String hex) {
