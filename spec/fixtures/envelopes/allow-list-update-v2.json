@@ -2,7 +2,7 @@
   "version": 1,
   "entry_id": "01942976340073438343434343434343",
   "issuer_id": "01941f297c0070509050505050505050",
-  "signature": "a547163fe76aaa4c34bad7329ed87e891789367f8f250f27659052c71747cffab9b7ca2996f913294161a24b06e03a8fae81f6b643bc7c66edbae38cbbfcb700",
+  "signature": "a7afedb3580be640a0411d3a68161589f5a7bc1cdb75ae46ede31dee5723e720e45b80a17e68aa0443d98b8df027fcf76bc6984ec9a5977cc2fb1cb25dc1750a",
   "ciphertext": "6a70f242572c90f70291be1a33f3bfef510c2522d7efd6080dd2343a54eff1f8580e7e30d3bb8a0d2537f1cf258d",
   "created_at": 1735862400000,
   "description": "Allow-list update v2",
@@ -13,14 +13,14 @@
   "recipient_wrappings": [
     {
       "verifier_id": "c8ea8c7380fca25e295df2067404b036",
-      "verifier_key_id": "72cd6e8422c407fb6d098690f1130b7d",
+      "verifier_key_id": "d06d966c0744a06b5cf1d68c583d2217",
       "wrapped_data_key": "3404fa698102976c6ce1b23085b0450ce9e5dddb0e81ce5f0feae6424e07045ff4e48dff39fa678345bd6265e34f22c4e35541f55aed4ad52a5d7b84e2fb570564bd1b71407811fa99063d96f424c568"
     },
     {
       "verifier_id": "f7a32e82b02dca75d90dbdc18b825174",
-      "verifier_key_id": "648aa5c579fb30f38af744d97d6ec840",
+      "verifier_key_id": "7939aa6adf910037eb7f9ff105dd19d4",
       "wrapped_data_key": "1bf3c2e02349be83a50b226d92045ab18e0c5210e166ca05b05db11b249402634c107c0a7e7d11165eff03f97983b4ecb5fbaf9c772ba33a584aa7fe9b807ecb9ec0602970c30c1b84fb0ce7c18897b1"
     }
   ],
-  "issuer_signing_key_id": "f849d67325facf04177bc663b2dc5440"
+  "issuer_signing_key_id": "7599776c3085e3f9da0d13071eb0b4ab"
 }

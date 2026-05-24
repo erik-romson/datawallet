@@ -28,127 +28,127 @@
     },
     {
       "path": "directory/directory_meta.json",
-      "sha256": "dedf0707d12c18e4750b56048aa997c27af47886d2d0118ab412b1bc66eeae8e",
+      "sha256": "3515fcbcb573dd6463d2afe67df1d70311d6a7a25c36ca1efbc25fc60c6531ee",
       "category": "directory",
       "description": "Directory generation metadata"
     },
     {
       "path": "directory/intermediate-record/both-signature-containers.cbor",
-      "sha256": "decd182db14710d67f43780648faec23f11099566411d0ba8fd03fa934d4def3",
+      "sha256": "c5c51eda8bddad9ee89efca0eb47c6f937673ae3c17905c57e657a40eb821cb4",
       "category": "directory",
       "description": "Record with both root_signatures and parent_signature (XOR violation, rejected)"
     },
     {
       "path": "directory/intermediate-record/chain-too-deep.cbor",
-      "sha256": "a0ed94154976742d038bb0dc45f79ec6289381bead21f7da7bf43e5bd22d4493",
+      "sha256": "61a996ee87777bc0385f813e7a83535998638924402584d5eba793d4e1895d55",
       "category": "directory",
       "description": "Issuer chain too deep: leaf -> intermediate -> intermediate (rejected)"
     },
     {
       "path": "directory/intermediate-record/deep-intermediate.cbor",
-      "sha256": "6073f1f0e7f10e1be51d1aa286a89b596ce82dbdd14e1fcb6c51ecf24ec647fb",
+      "sha256": "04d6408007435967ad235d6eb775b75911d4e41fb99b3bdd4ffca6db2902f553",
       "category": "directory",
       "description": "Intermediate record that is itself parent-signed (used in chain-too-deep test)"
     },
     {
       "path": "directory/intermediate-record/intermediate.cbor",
-      "sha256": "512b1d670a5a52c1b53480677999c7f9f6259eeb4afa67a406d33d34addc1def",
+      "sha256": "59fb943550cad2a682657cc5860a5aad08e5d87fc5d91b0a8cdc2f6d8b91c9cd",
       "category": "directory",
       "description": "Root-signed intermediate directory record"
     },
     {
       "path": "directory/intermediate-record/intermediate_meta.json",
-      "sha256": "aab1459598c7349c582c6206e38cce16033f20b0ca38cd09a933840ecf922b23",
+      "sha256": "23555537e352ecf15fa54b5b2fee57b58364416d9ecacd6b921a5c726725b631",
       "category": "directory",
       "description": "Intermediate-record chain fixture metadata"
     },
     {
       "path": "directory/intermediate-record/issuer-under-intermediate.cbor",
-      "sha256": "f6f55067e28ed553c7ffd385b80dca3c459667904fc9aaae35aab5f6e1dac1c7",
+      "sha256": "2693c3f5c9ec8477d7da175ad033fa33acde4f5678cf476d131d82c5ae38c9ee",
       "category": "directory",
       "description": "Issuer record signed by intermediate (valid chain)"
     },
     {
       "path": "directory/intermediate-record/no-signature-container.cbor",
-      "sha256": "e3c2eb6fa5755d43f14706a2d2b9ca6e25216f30c723a256aff0f381c2f71aa7",
+      "sha256": "9f8650c0e99514efca166aead2a936b2af92d781a3bb413d78fe3a5e76cc51f8",
       "category": "directory",
       "description": "Record with no signature container (rejected)"
     },
     {
       "path": "directory/intermediate-record/wrong-parent-signature.cbor",
-      "sha256": "3577f6855bf334e32634f215707ff008b4df464d6dd8e5778da5d99f45f9e8e6",
+      "sha256": "64c966dbc3b9a101f1b8383587d17a6b08ee43df704116296cfe20f80c8d688b",
       "category": "directory",
       "description": "Issuer with wrong parent signature (rejected)"
     },
     {
       "path": "directory/invalid/one-of-two-sigs.cbor",
-      "sha256": "056ed0d0b701368cdc5252b52150c7b9ab5d88fb117335ed2f994012f2cd889f",
+      "sha256": "8e9248dcf03ef9d60c353126ddf12f67209a83a1b31cffb57dd96c98c657af94",
       "category": "directory-invalid",
       "description": "Below threshold: only 1 of 2 required signatures"
     },
     {
       "path": "directory/invalid/tampered-public-key.cbor",
-      "sha256": "a1c11bc0046a61a61b31affc2a4b83e50d8434528aaddb518ce9d261eaa004e4",
+      "sha256": "d70cbdda79beff13bbd6f74597fce9c2777764cd00bd16f72a8e3a9011f5a4ba",
       "category": "directory-invalid",
       "description": "Tampered public key in directory record"
     },
     {
       "path": "directory/issuer-acme-active.cbor",
-      "sha256": "d7645f74a6d39e7e3388627915ce4245848b9a2deb1af768f637f2e0f19317fd",
+      "sha256": "f6c7d5035eb5e4e0d89c2c78ccd5259b6cf115105c2b4bcab65f2aa4afa16a9b",
       "category": "directory",
       "description": "Active issuer directory record: acme sign"
     },
     {
       "path": "directory/pinned-root.cbor",
-      "sha256": "a3a44cbd5ccce94d54621c14c9708112436c7c72bf0d31f3dbccda9139b0239e",
+      "sha256": "2f488e528a1cbe230a118023b2c627c8ea8dca8aa4d0b7fea8304031aa73c2d9",
       "category": "directory",
       "description": "Pinned trust root (3 roots, threshold 2)"
     },
     {
       "path": "directory/verifier-alice-active.cbor",
-      "sha256": "db3244e547dd8e5ea2c4f8d5f9c8983b79dc82be45d2fde73bfee05bcabdf483",
+      "sha256": "0cc3e8f77832361834cd6cfce77f0d66298c843a0d480bb5db48c27e3429195e",
       "category": "directory",
       "description": "Active verifier directory record: alice enc"
     },
     {
       "path": "directory/verifier-alice-revoked.cbor",
-      "sha256": "48e868d70b996cba963153f8e05e0b94e47d5184828cb3fce3e8f007c093ccad",
+      "sha256": "08428e6a42e7d790a23eb071631ea19de4e36d8b3caf572c0de8812f7476f068",
       "category": "directory",
       "description": "Revoked verifier directory record: alice enc"
     },
     {
       "path": "envelopes/allow-list-update-v2.cbor",
-      "sha256": "0b0bb3202c8a26e2a39e10b26e32d85ee29f0111311f2ca294a947a412501446",
+      "sha256": "e1d037cd51a685535e01f49d985f45e7255abf7986ef23f888facae4745fa6fd",
       "category": "envelope",
       "description": "Valid envelope: allow-list update v2"
     },
     {
       "path": "envelopes/allow-list-update-v2.json",
-      "sha256": "11c38530f129f9a1fc04949686f215c780b55f3ecaee0112adbef9b4c3fcbc19",
+      "sha256": "72fbb686f87834e43ee81f5bb7f22aea06b7137a6b21e0b16a8be1c92f8a38a3",
       "category": "envelope",
       "description": "JSON sidecar for allow-list-update-v2"
     },
     {
       "path": "envelopes/allow-list-update-v2.signed",
-      "sha256": "40c21d340351845a48c26a9896bf179a2db599565187739bb0be20352776a418",
+      "sha256": "16260738bf9f23488bde495b9d5fac54410dff587369be325063975fbc60b68c",
       "category": "envelope",
       "description": "Signed bytes for allow-list-update-v2"
     },
     {
       "path": "envelopes/basic-1-recipient.cbor",
-      "sha256": "923fd447b09d01d4cfece2686f23817802e652f491f7e25c711ba596280248d1",
+      "sha256": "07e85b6d3afe70c7a954cee601998aa569e75922e499d1bebe8100643ba460e7",
       "category": "envelope",
       "description": "Valid envelope: single recipient (alice)"
     },
     {
       "path": "envelopes/basic-1-recipient.json",
-      "sha256": "3037d4a28a81c845e23297b0f15c0eac3af0064d230ee86e74b472d61806a2a0",
+      "sha256": "72d081d1f884117b71daf05bfc6462a223148e8e43ec46cd9e065f784503a38f",
       "category": "envelope",
       "description": "JSON sidecar for basic-1-recipient"
     },
     {
       "path": "envelopes/basic-1-recipient.signed",
-      "sha256": "0f9d81def208f5dc5e0de789fd6a0de8d8e262a3f1a84a04bf62addebe2d0dbe",
+      "sha256": "17076cdf6008938f7c2db739152b437f0138fd52c6c1d09101816a48c84ca468",
       "category": "envelope",
       "description": "Signed bytes for basic-1-recipient"
     },
@@ -160,31 +160,31 @@
     },
     {
       "path": "envelopes/invalid/future-version.cbor",
-      "sha256": "db4f077ed4e9691a753ca924800ed8eb7ce2fdbf3f6a0594439d1048f2cb5fce",
+      "sha256": "fe13c0a0531ee32434fe326f095a5e9ca5f2ed8ba20c7dac4e4ed472e52785ba",
       "category": "envelope-invalid",
       "description": "Future version (version=2)"
     },
     {
       "path": "envelopes/invalid/non-canonical-cbor.cbor",
-      "sha256": "a253264f60705850cadcaa25ae0ea31f5ff2bf1b958c720dc983d66841a1e029",
+      "sha256": "daa6af989b9ca7b7c9959b7b89c1e71929e118b712b796b375d7b90f226f58c9",
       "category": "envelope-invalid",
       "description": "Non-canonical CBOR encoding"
     },
     {
       "path": "envelopes/invalid/stale-key-id.cbor",
-      "sha256": "4e446d21073d53065af52528af169505a0532b06a4834a78abb8c45da628d876",
+      "sha256": "71279c2d4e9bf9d2ec86725a515f583d4d62974adb90b9072f09b09f6ab65835",
       "category": "envelope-invalid",
       "description": "created_at outside valid_from..valid_until"
     },
     {
       "path": "envelopes/invalid/tampered-ciphertext.cbor",
-      "sha256": "80559d42120771fbaf93c9c11a5b1c61e378c5e719616631a47296731e9a07c8",
+      "sha256": "a386b01d9598da1670a441d97f2d75c1046fac6d60016031bb8743c23c86cd0c",
       "category": "envelope-invalid",
       "description": "Tampered ciphertext: hash mismatch"
     },
     {
       "path": "envelopes/invalid/wrong-issuer-key.cbor",
-      "sha256": "9c298f8b971f36ac1916f53836db50d087c5722047d8b8481243344b46fb8cf9",
+      "sha256": "9059535e822efeea6086e7c6b864f086b0a68fae2ae233649189de2d06ded4e0",
       "category": "envelope-invalid",
       "description": "Wrong issuer signing key"
     },
@@ -196,19 +196,19 @@
     },
     {
       "path": "envelopes/mobile-built/single-recipient.cbor",
-      "sha256": "80fc29eeaeafb14f68f396c130ea079d7569867846b434c9b8829d7fc66d6e17",
+      "sha256": "e2a10ded32541bd06cf8322335ad333ba435437558879c0e5c2784f4ffd9f297",
       "category": "envelope",
       "description": "Mobile-built envelope: single recipient (alice)"
     },
     {
       "path": "envelopes/mobile-built/single-recipient.json",
-      "sha256": "44b17ace27a92f47416e33fbc8296d464440410d7e79d011f60d2bcba7249560",
+      "sha256": "fdd53bea7855b6745caef33053019bdeda5750dc7cc94036146aa011fc449e14",
       "category": "envelope",
       "description": "JSON sidecar for mobile-built single-recipient"
     },
     {
       "path": "envelopes/mobile-built/single-recipient.signed",
-      "sha256": "6d50c3922626c7172e6795a6948b5ee652fdd80101e755483f93df505d4e7118",
+      "sha256": "e2a9d741c1f6b070c2ec2ca8561416dce53f6e349ff8fb417fec1c544e1132ae",
       "category": "envelope",
       "description": "Signed bytes for mobile-built single-recipient"
     },
@@ -220,37 +220,37 @@
     },
     {
       "path": "envelopes/three-recipients.cbor",
-      "sha256": "196f6a1be321eab36b678c42e5f17b55c07f6ca2c3390fdb0ef1a663385cdbce",
+      "sha256": "937030a7bcf2f6160587ed2e1642bb9445b77c0d198f4be1351553b37387accd",
       "category": "envelope",
       "description": "Valid envelope: three recipients"
     },
     {
       "path": "envelopes/three-recipients.json",
-      "sha256": "27f45de400396134111da1fd80764c93b3ca079ce27e6813d50f72e6d551a13e",
+      "sha256": "5ff5d87223356562e375cb25c29ddd7e2751d78439ea174388abccf7c892869b",
       "category": "envelope",
       "description": "JSON sidecar for three-recipients"
     },
     {
       "path": "envelopes/three-recipients.signed",
-      "sha256": "5e7e19193a37779de468eb66e5595338190f80d4af1e30cdc9a380a6abfde386",
+      "sha256": "20dbbc6dfb00a01d5fca41a224ac28e8bdedc90a8c9b34481c0f182127ccce92",
       "category": "envelope",
       "description": "Signed bytes for three-recipients"
     },
     {
       "path": "envelopes/unicode-description.cbor",
-      "sha256": "dec567fa18090f20930b6cdbf3d8b49092ca668076897e5cb168b6ae8305cd0f",
+      "sha256": "dfddd986d8a6a0b2484f46fd3a90a812e89bba7c7292eecb357319e1c4a4d6c1",
       "category": "envelope",
       "description": "Valid envelope: unicode description"
     },
     {
       "path": "envelopes/unicode-description.json",
-      "sha256": "2023485a0227575b4dab99d2a3b37d01739aa7644779f24df2769b824e1f5988",
+      "sha256": "df3e495aa24f5a29e9ebd2075ff2a1d0e081af9fdc5b7f256ac5b6b7b3d45ba2",
       "category": "envelope",
       "description": "JSON sidecar for unicode-description"
     },
     {
       "path": "envelopes/unicode-description.signed",
-      "sha256": "1adc3b1f5cd253e2f200176ee7f49b29d29907225addfb7c6b89c136e63a0173",
+      "sha256": "7052d9659fd69b44fbc125b62ea3d21069b452060de996034273af789689b60a",
       "category": "envelope",
       "description": "Signed bytes for unicode-description"
     },

@@ -11,15 +11,21 @@ Usage:
     python spec/tools/gen.py --check  # compare against committed fixtures
 """
 
+import os
+import sys
+from pathlib import Path
+
+_VENV_DIR = Path(__file__).resolve().parent / ".venv"
+_VENV_PYTHON = _VENV_DIR / "bin" / "python3"
+if _VENV_PYTHON.exists() and not any(str(_VENV_DIR) in p for p in sys.path):
+    os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
+
 import argparse
 import hashlib
 import json
-import os
 import struct
-import sys
 import tempfile
 import unicodedata
-from pathlib import Path
 
 import cbor2
 import nacl.bindings
@@ -449,12 +455,12 @@ def generate(out_dir: Path):
     write_json(out_dir / "wrapped" / "wrap_meta.json", wrap_meta)
     track("wrapped/wrap_meta.json", "wrapped", "Wrap metadata sidecar")
 
-    # ── Key IDs (deterministic from seed) ───────────────────────────
-    # Use first 16 bytes of SHA-256(seed) as key_id
-    def key_id_from_seed(seed: bytes) -> bytes:
-        return sha256(seed)[:16]
+    # ── Key IDs (deterministic from public key) ─────────────────────
+    # sha256(public_key)[:16] — matches DirectoryRecordSigner.computeKeyId
+    def key_id_from_public_key(public_key: bytes) -> bytes:
+        return sha256(public_key)[:16]
 
-    key_ids = {name: key_id_from_seed(k["seed"]) for name, k in keys.items()}
+    key_ids = {name: key_id_from_public_key(k["public"]) for name, k in keys.items()}
 
     # Issuer ID from acme_sign uuid
     issuer_id = uuid_map["issuer_acme"]

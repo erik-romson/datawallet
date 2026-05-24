@@ -157,7 +157,7 @@ class EntryControllerIT {
         entryRepository.save(new EntryEntity(
                 updateEntryId, 1, issuerId, true, Instant.now().minusSeconds(60), null,
                 new byte[]{0x01}, differentHash, "Acme Corp",
-                java.util.HexFormat.of().parseHex("f849d67325facf04177bc663b2dc5440"), "seed"));
+                java.util.HexFormat.of().parseHex("7599776c3085e3f9da0d13071eb0b4ab"), "seed"));
 
         byte[] updateBytes = Files.readAllBytes(
                 resolveFixturesDir().resolve("envelopes/allow-list-update-v2.cbor"));
@@ -209,7 +209,7 @@ class EntryControllerIT {
         entryRepository.save(new EntryEntity(
                 updateEntryId, 1, issuerId, true, Instant.now().minusSeconds(60), null,
                 new byte[]{0x01}, env.ciphertextHash(), "Acme Corp",
-                java.util.HexFormat.of().parseHex("f849d67325facf04177bc663b2dc5440"), "seed"));
+                java.util.HexFormat.of().parseHex("7599776c3085e3f9da0d13071eb0b4ab"), "seed"));
 
         mvc.perform(put("/v1/entries/" + UPDATE_ENTRY_ID)
                         .header(HeaderIssuerPrincipalResolver.HEADER, ACME_ISSUER_UUID)
@@ -236,7 +236,7 @@ class EntryControllerIT {
         entryRepository.save(new EntryEntity(
                 updateEntryId, 1, issuerId, true, Instant.now().minusSeconds(60), null,
                 new byte[]{0x01}, differentHash, "Acme Corp",
-                java.util.HexFormat.of().parseHex("f849d67325facf04177bc663b2dc5440"), "seed"));
+                java.util.HexFormat.of().parseHex("7599776c3085e3f9da0d13071eb0b4ab"), "seed"));
 
         CountDownLatch start = new CountDownLatch(1);
         ExecutorService exec = Executors.newFixedThreadPool(2);

@@ -37,6 +37,10 @@ build/
 ### Mac OS ###
 .DS_Store
 tmp
+
+### Python ###
+.venv/
+__pycache__/
 /.claude/skills/split-plan/
 
 ### Flutter ###

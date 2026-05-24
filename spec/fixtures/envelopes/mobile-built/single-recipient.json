@@ -2,7 +2,7 @@
   "version": 1,
   "entry_id": "0194297634007d6dad6d6d6d6d6d6d6d",
   "issuer_id": "bb9c6b6e7ffa2131869d72640c78bcb5",
-  "signature": "aef85f8b78920ddca85f4f23476dd3ddfd31db6dffabef179ebc8799d6c585374a8bf397f2014b7525221b4eeea9d5f5304c1e58d5718a09e4eb6eef4ac0dc0f",
+  "signature": "ebfc830dc2cda3d2af5d26c5c921f73e1006dae799619e422c426d421265dc8d5705f54a992a861cb2971ad6bd53c4968e750ab973b941d664bfea68a2bc590d",
   "ciphertext": "42d5480a6e7ca322385366e0476b3723fb538ce2d4b114678f37411b51ef456361f888dd483e077a112e366f7a71c8902dcd9796cfc1bf4570f9fb12a9",
   "created_at": 1735862400000,
   "description": "Mobile-issued credential",
@@ -13,9 +13,9 @@
   "recipient_wrappings": [
     {
       "verifier_id": "c8ea8c7380fca25e295df2067404b036",
-      "verifier_key_id": "72cd6e8422c407fb6d098690f1130b7d",
+      "verifier_key_id": "d06d966c0744a06b5cf1d68c583d2217",
       "wrapped_data_key": "35366901124f8fe31b8823ce664e3631f938e0e725c14a55e773b705f230a40f7a16803af50ee64190a5a8af73a7134884130b3738246e12a079b945c107c438fe6e561dce2fdd84edbacfaf98d886c9"
     }
   ],
-  "issuer_signing_key_id": "ae2a4ad16dc264b2fd4ed034e0fd56c9"
+  "issuer_signing_key_id": "9c1165e101c1bae257f9c91a94fbb517"
 }

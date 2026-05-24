@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
@@ -43,18 +44,14 @@ class CliRoundTripIT {
     private static final java.util.Base64.Encoder B64 = java.util.Base64.getUrlEncoder().withoutPadding();
     private static final java.util.Base64.Decoder B64_DEC = java.util.Base64.getUrlDecoder();
 
-    // Fixture constants from spec/fixtures/inputs/keypairs.json + directory/directory_meta.json
     private static final String ACME_SIGN_SEED =
             "0505050505050505050505050505050505050505050505050505050505050505";
-    private static final String ACME_KEY_ID_HEX = "f849d67325facf04177bc663b2dc5440";
     private static final String ACME_ISSUER_UUID = "01941f29-7c00-7050-9050-505050505050";
 
     private static final String ALICE_ENC_SEED =
             "0101010101010101010101010101010101010101010101010101010101010101";
     private static final String ALICE_AUTH_SEED =
             "0202020202020202020202020202020202020202020202020202020202020202";
-    private static final String ALICE_ENC_KEY_ID_HEX = "72cd6e8422c407fb6d098690f1130b7d";
-    private static final String ALICE_AUTH_KEY_ID_HEX = "75877bb41d393b5fb8455ce60ecd8dda";
 
     @Autowired private MockMvc mvc;
     @Autowired private ObjectMapper objectMapper;
@@ -76,8 +73,8 @@ class CliRoundTripIT {
         byte[] aliceAuthSeed = HEX.parseHex(ALICE_AUTH_SEED);
         Ed25519.KeyPair aliceAuthKp = Ed25519.seedKeypair(aliceAuthSeed);
 
-        byte[] aliceEncKeyId = HEX.parseHex(ALICE_ENC_KEY_ID_HEX);
-        byte[] aliceAuthKeyId = HEX.parseHex(ALICE_AUTH_KEY_ID_HEX);
+        byte[] aliceEncKeyId = computeKeyId(aliceEncKp.publicKey());
+        byte[] aliceAuthKeyId = computeKeyId(aliceAuthKp.publicKey());
 
         String handle = "cli-alice-" + (System.nanoTime() % 1_000_000);
         String regJson = """
@@ -111,11 +108,11 @@ class CliRoundTripIT {
     void buildEnvelopeRoundTrip() throws Exception {
         byte[] acmeSeed = HEX.parseHex(ACME_SIGN_SEED);
         Ed25519.KeyPair acmeKp = Ed25519.seedKeypair(acmeSeed);
-        byte[] acmeKeyId = HEX.parseHex(ACME_KEY_ID_HEX);
+        byte[] acmeKeyId = computeKeyId(acmeKp.publicKey());
         UUID issuerId = UUID.fromString(ACME_ISSUER_UUID);
         UUID entryId = UuidV7.now();
 
-        byte[] aliceEncKeyId = HEX.parseHex(ALICE_ENC_KEY_ID_HEX);
+        byte[] aliceEncKeyId = computeKeyId(aliceEncKp.publicKey());
 
         // Use a timestamp within the fixture key's validity window (Jan 2025, before valid_until Jan 2026)
         long createdAt = 1740000000000L; // 2025-02-20T00:00:00Z
@@ -169,6 +166,10 @@ class CliRoundTripIT {
     }
 
     // --- helpers ---
+
+    private static byte[] computeKeyId(byte[] publicKey) {
+        return Arrays.copyOf(com.erikromson.datawallet.crypto.Sha256.hash(publicKey), 16);
+    }
 
     private String authenticate(UUID verifierId, byte[] authPrivKey) throws Exception {
         MvcResult challengeResult = mvc.perform(post("/v1/auth/challenge")

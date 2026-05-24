@@ -2,7 +2,7 @@
   "version": 1,
   "entry_id": "0194244fd80072428242424242424242",
   "issuer_id": "01941f297c0070509050505050505050",
-  "signature": "951db75d53be24fb7ee3f047e765100f46f2f0855b5508f778608564a36633178d79ec729a609a749a8b0e7bd7c084ff94a4a95de146f5cac13246f4487dcc01",
+  "signature": "4a7d51535e0e3293eb553cd7825b4336b0835bbd188cf3518f36eedae8e572a360bd6f5574ddc7e48b253962dc4abe58344ed90d17d27c11e398011fb1b42102",
   "ciphertext": "7a8fc1b376ac3ad4f157d28aecfa43bb4dd82b3d8e98209bcb9f2716f8b30992f039bac21fff1e82921bab3f916a12e022222f50eb87d983f3ed20",
   "created_at": 1735776000000,
   "description": "Basic test credential",
@@ -13,9 +13,9 @@
   "recipient_wrappings": [
     {
       "verifier_id": "c8ea8c7380fca25e295df2067404b036",
-      "verifier_key_id": "72cd6e8422c407fb6d098690f1130b7d",
+      "verifier_key_id": "d06d966c0744a06b5cf1d68c583d2217",
       "wrapped_data_key": "18d659921364bec1074b7476291348cc0ed5f05f8b731ad31635a90809812d032f4aec7fd2adafd718fc17c1850045cb69440c9a34fd7d7d220bf1b949aa79903b628077b5ca3edc57287669157e551b"
     }
   ],
-  "issuer_signing_key_id": "f849d67325facf04177bc663b2dc5440"
+  "issuer_signing_key_id": "7599776c3085e3f9da0d13071eb0b4ab"
 }

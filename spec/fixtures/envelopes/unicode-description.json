@@ -2,7 +2,7 @@
   "version": 1,
   "entry_id": "0194244fd80072428242424242424242",
   "issuer_id": "01941f297c0070509050505050505050",
-  "signature": "9b0f77e15314330d64bda93a4cf6239668b98a449786c4875e4354385c89bf775a5c540c02364fc31fdb43cb6a8883e13aa342552daa08a2e0fac149d7f6f60f",
+  "signature": "fb35ce28fc4a752f05aace7a788d2fec44dafeeb8571d13763a867073f873fdecdd987705eab392bf66fb3f195ce2dfda06a436f7c434524a2568e17e87e2708",
   "ciphertext": "789a48ea53c21bb925983760d71d0c6a520c0d4256857aad2ae5cdb1fa187ed698fd0f84cdb43a8bb75627fc7149278eb9a75d5f2b4071e99532fe9b877cbb22931b2010c3ec",
   "created_at": 1735776000000,
   "description": "Crédential avec des caractères spéciaux",
@@ -13,9 +13,9 @@
   "recipient_wrappings": [
     {
       "verifier_id": "c8ea8c7380fca25e295df2067404b036",
-      "verifier_key_id": "72cd6e8422c407fb6d098690f1130b7d",
+      "verifier_key_id": "d06d966c0744a06b5cf1d68c583d2217",
       "wrapped_data_key": "99500cd1d07d876573ebbf4b18da52f0e7eeea49ad9d7cd630edb9e050d2aa79423bd1155e28ccb7d1b759883d1ba53370e29ba86edb9178bf432fd5cb2a2645194ca44fd866dc0c0d229e11b3d6c83b"
     }
   ],
-  "issuer_signing_key_id": "f849d67325facf04177bc663b2dc5440"
+  "issuer_signing_key_id": "7599776c3085e3f9da0d13071eb0b4ab"
 }
