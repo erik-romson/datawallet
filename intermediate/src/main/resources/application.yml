@@ -42,6 +42,10 @@ datawallet:
       # Subject DN OU defense-in-depth: the X509 resolver only accepts certs
       # whose subject contains "OU=<this value>".
       operator-ou: operators
+      # Static bearer token for POST /revoke/trigger (account-deletion / key-compromise).
+      # Must be set in production via INTERMEDIATE_TRIGGER_TOKEN env var.
+      # Leave blank to disable the trigger endpoint (returns 401 for all callers).
+      trigger-token: ${INTERMEDIATE_TRIGGER_TOKEN:}
     attestation:
       mode: stub
       play-integrity:

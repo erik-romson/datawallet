@@ -228,6 +228,50 @@ Server validates root-quorum signatures on `root-update` against currently-pinne
 
 Query params: `cursor=<opaque>`, `limit=<1..100>` (default 50). Ordered `issued_at DESC, subject_id DESC`.
 
+### 3.7 Intermediate service — account-deletion / revocation trigger
+
+The intermediate signing service (port 8444) exposes a trigger endpoint for account-deletion
+and key-compromise events. The caller ownership (app vs egnedata backend vs operator) is TBD;
+the contract below is fixed regardless of who calls it.
+
+**Auth:** `Authorization: Bearer <trigger-token>` where the token is a static pre-shared secret
+configured on the intermediate via `INTERMEDIATE_TRIGGER_TOKEN` env var. Missing or wrong token
+returns `401 trigger_auth_required`. Set the env var to a cryptographically random value (≥ 32
+bytes) in production; leaving it blank disables the endpoint entirely.
+
+| Method | Path | Auth | Body | Response |
+|--------|------|------|------|----------|
+| `POST` | `/revoke/trigger` | static bearer token | `TriggerRequest` (JSON) | `200 OK` + `{signed_record}` (JSON) |
+
+```jsonc
+// TriggerRequest
+{
+  "install_uuid": "<uuid>",          // issuer install being revoked
+  "key_id":       "<b64url 16 bytes>",
+  "reason_code":  "account_deletion" // or "key_compromise"
+}
+
+// TriggerResponse (200 OK)
+{
+  "signed_record": "<b64url CBOR>"   // the signed revoked directory record
+}
+```
+
+**Effect:** publishes a `revoked` directory record to the server and eagerly inserts
+`(install_uuid, key_id)` into the local revocation deny-list. Idempotent only if the record
+is still `active` on the server; calling twice returns `404 not_found` on the second call
+(the first publish moved the record to `revoked`).
+
+| Status | `error` code | Meaning |
+|--------|-------------|---------|
+| `200` | — | Record revoked and deny-listed |
+| `401` | `trigger_auth_required` | Missing or invalid bearer token |
+| `404` | `not_found` | No active record for the given install |
+| `502` | `revoke_publish_failed` | Upstream server rejected or timed out; `retryable: true` |
+
+The existing operator-cert path (`POST /revoke`) remains unchanged and is the preferred path
+for operator-initiated revocations.
+
 ## 4. Error model
 
 All non-CBOR error responses use a single envelope, regardless of endpoint:
