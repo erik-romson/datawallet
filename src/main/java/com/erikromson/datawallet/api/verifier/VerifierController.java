@@ -1,11 +1,14 @@
 package com.erikromson.datawallet.api.verifier;
 
+import com.erikromson.datawallet.api.shared.Cursor;
 import com.erikromson.datawallet.audit.AuditService;
+import com.erikromson.datawallet.crypto.Fingerprint;
 import com.erikromson.datawallet.crypto.UuidV7;
 import com.erikromson.datawallet.domain.VerifierEntity;
 import com.erikromson.datawallet.domain.VerifierRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +18,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -48,12 +55,70 @@ public class VerifierController {
         this.webOrigin = webOrigin;
     }
 
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<VerifierListDto> list(
+            @RequestParam(required = false) String since,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "50") int limit) {
+
+        if (since != null && cursor != null) {
+            throw new SchemaViolation("since and cursor are mutually exclusive");
+        }
+
+        int clampedLimit = Math.max(1, Math.min(100, limit));
+        int fetch = clampedLimit + 1;
+
+        List<VerifierEntity> rows;
+        if (cursor != null) {
+            Cursor c = Cursor.decode(cursor);
+            rows = verifierRepository.findDiscoverableWithCursor(c.createdAt(), c.entryId(), fetch);
+        } else if (since != null) {
+            Instant sinceInstant;
+            try {
+                sinceInstant = Instant.parse(since);
+            } catch (DateTimeParseException e) {
+                throw new SchemaViolation("Invalid since format: " + since);
+            }
+            rows = verifierRepository.findDiscoverableSince(sinceInstant, fetch);
+        } else {
+            rows = verifierRepository.findDiscoverable(fetch);
+        }
+
+        boolean hasMore = rows.size() > clampedLimit;
+        List<VerifierEntity> page = hasMore ? rows.subList(0, clampedLimit) : rows;
+
+        String nextCursor = null;
+        if (hasMore) {
+            VerifierEntity last = page.get(page.size() - 1);
+            nextCursor = Cursor.encode(last.getCreatedAt(), last.getVerifierId());
+        }
+
+        List<VerifierListDto.Item> items = page.stream()
+                .map(v -> new VerifierListDto.Item(
+                        v.getVerifierId().toString(),
+                        v.getHandle(),
+                        v.getDisplayName(),
+                        B64URL_ENC.encodeToString(v.getEncKeyId()),
+                        Fingerprint.render(v.getEncPublicKey()),
+                        v.getCreatedAt().toString()
+                ))
+                .toList();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=300")
+                .body(new VerifierListDto(items, nextCursor));
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> register(
             @Valid @RequestBody VerifierRegistrationDto dto,
             @RequestHeader(value = "Origin", required = false) String origin) {
 
         HandleValidator.validate(dto.handle());
+
+        if (Boolean.TRUE.equals(dto.discoverable()) && (dto.displayName() == null || dto.displayName().isBlank())) {
+            throw new SchemaViolation("display_name is required when discoverable is true");
+        }
 
         boolean web = isWebOrigin(origin);
         Argon2idFloor.enforce(dto.kdfParams(), web);
@@ -80,6 +145,7 @@ public class VerifierController {
                 encPub, encKeyId, authPub, authKeyId,
                 wrappedEnc, wrappedAuth, salt, kdfMap, "active"
         );
+        entity.setDiscoverable(Boolean.TRUE.equals(dto.discoverable()));
         verifierRepository.save(entity);
 
         auditService.recordEvent(
@@ -138,5 +204,9 @@ public class VerifierController {
         public HandleNotFound(String handle) {
             super("Handle not found: " + handle);
         }
+    }
+
+    public static class SchemaViolation extends RuntimeException {
+        public SchemaViolation(String msg) { super(msg); }
     }
 }

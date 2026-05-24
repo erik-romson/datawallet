@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .addFilterBefore(bearerAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/v1/verifiers").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/verifiers").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/verifiers/*/login-blob").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/challenge").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/verify").permitAll()

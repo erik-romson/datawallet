@@ -21,11 +21,12 @@ All endpoints prefixed with `/v1/`. v2 will be a sibling prefix; no in-place bre
 
 ## 3. Endpoint surface
 
-### 3.1 Verifier registration & account
+### 3.1 Verifier registration, account & discovery
 
 | Method | Path | Auth | Body | Response |
 |--------|------|------|------|----------|
 | `POST` | `/v1/verifiers` | none | `VerifierRegistration` (JSON) | `201 Created` + `{verifier_id}` |
+| `GET`  | `/v1/verifiers` | none | — | `VerifierList` (JSON, paginated) |
 | `GET`  | `/v1/verifiers/{handle}/login-blob` | none | — | `LoginBlob` (JSON) |
 | `POST` | `/v1/verifiers/{verifier_id}/password` | session | `PasswordChange` (JSON) | `204 No Content` |
 | `POST` | `/v1/verifiers/{verifier_id}/rotate-keys` | session + signed challenge | `KeyRotation` (JSON) | `204 No Content` |
@@ -34,7 +35,8 @@ All endpoints prefixed with `/v1/`. v2 will be a sibling prefix; no in-place bre
 // VerifierRegistration
 {
   "handle": "alice",
-  "display_name": "Alice",                       // optional, max 64 chars
+  "display_name": "Alice",                       // optional, max 64 chars; required when discoverable=true
+  "discoverable": false,                         // optional, default false; opt-in to GET /v1/verifiers listing
   "enc_public_key":   "<b64url 32 bytes>",
   "enc_key_id":       "<b64url 16 bytes>",       // random per key, opaque to server
   "auth_public_key":  "<b64url 32 bytes>",
@@ -45,6 +47,26 @@ All endpoints prefixed with `/v1/`. v2 will be a sibling prefix; no in-place bre
   "kdf_params": {"alg":"argon2id","m":268435456,"t":3,"p":1,"version":19},
   "client_password_score": 3                     // zxcvbn 0-4, advisory
 }
+
+// VerifierList — public discovery picklist for issuers
+{
+  "items": [
+    {
+      "verifier_id":     "<uuidv7>",
+      "handle":          "alice",
+      "display_name":    "Alice",
+      "enc_key_id":      "<b64url 16 bytes>",
+      "key_fingerprint": "ABCD-EFGH-IJKL-MNOP",  // §8 rendering of enc public key
+      "created_at":      "2026-04-25T08:30:00Z"
+    }
+  ],
+  "next_cursor": "<opaque>"  // null when exhausted
+}
+```
+
+`GET /v1/verifiers` returns only `status='active'` AND `discoverable=true` rows, ordered `created_at DESC, verifier_id DESC`. Cache-Control: `public, max-age=300`. The response **never** includes `enc_public_key` — clients derive trust from `key_fingerprint` only.
+
+Query params (same contract as §3.5 and §7): `since=<RFC3339>`, `cursor=<opaque>`, `limit=<1..100>` (default 50). `since` and `cursor` are mutually exclusive (`400 schema_violation` if both supplied).
 
 // LoginBlob (returned to anyone who asks — accepted risk H1)
 {
@@ -238,7 +260,7 @@ Logout response additionally sets:
 Clear-Site-Data: "cache", "storage"
 ```
 
-Directory records MAY be cached briefly:
+Discovery endpoint (`GET /v1/verifiers`) and directory records MAY be cached briefly:
 ```
 Cache-Control: public, max-age=300
 ```
@@ -265,6 +287,7 @@ Token bucket per key, stored in PostgreSQL (no Redis dep in v1) using a `rate_li
 |----------|-----|-------|-----------|
 | `POST /v1/auth/challenge` | `(ip, verifier_id)` | 5 | 30/min |
 | `POST /v1/auth/verify`    | `(ip, verifier_id)` | 5 | 30/min |
+| `GET /v1/verifiers` | `ip` | 20 | 120/min |
 | `GET /v1/verifiers/{handle}/login-blob` | `(ip, handle)` | 5 | 60/min |
 | `GET /v1/directory/verifiers/{handle}` | `ip` | 20 | 600/min |
 | `GET /v1/shared`, `GET /v1/shared/{id}` | `verifier_id` | 20 | 300/min |
@@ -278,7 +301,7 @@ Progressive lockout: after 10 consecutive `auth_invalid_signature` for the same 
 
 All list endpoints that return `next_cursor`:
 - Cursor is opaque, server-issued, base64url. Format MAY change without notice.
-- Cursor encodes the order tuple (`created_at`, `entry_id` for `/shared`).
+- Cursor encodes the order tuple: `(created_at, entry_id)` for `/shared`; `(created_at, verifier_id)` for `/v1/verifiers`.
 - Repeating a cursor is idempotent within retention.
 - Mixing `since` and `cursor` in the same call is a `400 schema_violation`.
 

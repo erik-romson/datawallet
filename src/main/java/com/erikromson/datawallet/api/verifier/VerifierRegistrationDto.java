@@ -20,7 +20,8 @@ public record VerifierRegistrationDto(
         @NotBlank @Pattern(regexp = BASE64URL) String wrappedAuthPrivateKeyBlob,
         @NotBlank @Pattern(regexp = BASE64URL) String kdfSalt,
         @NotNull @Valid KdfParams kdfParams,
-        Integer clientPasswordScore
+        Integer clientPasswordScore,
+        Boolean discoverable
 ) {
     static final String BASE64URL = "[A-Za-z0-9_-]+";
 }

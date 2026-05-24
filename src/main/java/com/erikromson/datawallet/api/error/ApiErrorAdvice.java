@@ -100,6 +100,11 @@ public class ApiErrorAdvice {
         return respond(HttpStatus.BAD_REQUEST, "schema_violation", ex.getMessage());
     }
 
+    @ExceptionHandler(VerifierController.SchemaViolation.class)
+    public ResponseEntity<ApiError> verifierSchemaViolation(VerifierController.SchemaViolation ex) {
+        return respond(HttpStatus.BAD_REQUEST, "schema_violation", ex.getMessage());
+    }
+
     @ExceptionHandler(Cursor.BadCursor.class)
     public ResponseEntity<ApiError> badCursor(Cursor.BadCursor ex) {
         return respond(HttpStatus.BAD_REQUEST, "bad_cursor", ex.getMessage());
