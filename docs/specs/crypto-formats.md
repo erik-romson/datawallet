@@ -19,7 +19,7 @@ All multi-byte integers are big-endian unless stated. All "canonical CBOR" means
 | `ED25519_PRIV_LEN` | `64` | libsodium expanded form (seed ‖ public) |
 | `ED25519_SIG_LEN` | `64` | |
 | `KDF_SALT_LEN` | `16` | random per verifier, stable across password changes |
-| `KEY_ID_LEN` | `16` | random per keypair |
+| `KEY_ID_LEN` | `16` | `sha256(public_key)[0:16]` for issuer/intermediate records; random for verifier keypairs |
 | `AUTH_NONCE_LEN` | `32` | server-issued challenge |
 | `SESSION_TOKEN_LEN` | `32` | server-issued session bearer |
 
@@ -212,7 +212,7 @@ Chain depth is capped at 2 (root → intermediate → leaf). Records that would 
 
 Cross-stack chain fixtures: `spec/fixtures/directory/intermediate-record/`.
 
-Freshness: clients reject `now() > issued_at + 7d`. Server republishes records at least every 3.5 days (`max_age / 2`).
+Freshness: clients reject `now() > issued_at + 7d`. The intermediate's republish loop re-signs eligible records at least every 3.5 days (`max_age / 2`) with a fresh `issued_at`/`valid_from`, same `key_id` and `public_key`. `key_id = sha256(public_key)[0:16]` (production: `DirectoryRecordSigner.computeKeyId`).
 
 Status transitions are append-only — a `revoked` record supersedes prior `active` records with the same `(record_type, subject_id, key_id)`. The server retains all records for `valid_until + 30d` for auditability. Clients always pick the freshest record matching the lookup key.
 

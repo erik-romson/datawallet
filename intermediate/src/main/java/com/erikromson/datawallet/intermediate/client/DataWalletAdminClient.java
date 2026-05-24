@@ -12,6 +12,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
@@ -105,6 +106,47 @@ public class DataWalletAdminClient {
         }
     }
 
+    public ActiveIssuerPage getActiveIssuers(String cursor, int limit) {
+        String path = "/v1/admin/directory/active-issuers?limit=" + limit;
+        if (cursor != null) {
+            path += "&cursor=" + cursor;
+        }
+        URI uri = URI.create(serverBaseUrl + path);
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .timeout(TIMEOUT)
+                .GET()
+                .build();
+
+        HttpResponse<String> response;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            throw new ServerUnavailableException("Failed to fetch active issuers", e);
+        }
+
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new ServerUnavailableException(
+                    "Server returned " + response.statusCode() + " for active issuers");
+        }
+
+        try {
+            return json.readValue(response.body(), ActiveIssuerPage.class);
+        } catch (Exception e) {
+            throw new ServerUnavailableException("Failed to parse active issuers response", e);
+        }
+    }
+
+    public List<ActiveIssuer> getAllActiveIssuers(int pageSize) {
+        List<ActiveIssuer> all = new ArrayList<>();
+        String cursor = null;
+        do {
+            ActiveIssuerPage page = getActiveIssuers(cursor, pageSize);
+            all.addAll(page.items());
+            cursor = page.nextCursor();
+        } while (cursor != null);
+        return all;
+    }
+
     public List<RevokedIssuer> getRevokedIssuers() {
         URI uri = URI.create(serverBaseUrl + "/v1/admin/directory/revoked-issuers");
         HttpRequest request = HttpRequest.newBuilder(uri)
@@ -130,6 +172,20 @@ public class DataWalletAdminClient {
             throw new ServerUnavailableException("Failed to parse revoked issuers response", e);
         }
     }
+
+    public record ActiveIssuer(
+            @JsonProperty("subject_id") String subjectId,
+            @JsonProperty("key_id") String keyId,
+            @JsonProperty("valid_from") long validFrom,
+            @JsonProperty("valid_until") long validUntil,
+            @JsonProperty("issued_at") long issuedAt,
+            @JsonProperty("signed_record") String signedRecord
+    ) {}
+
+    public record ActiveIssuerPage(
+            List<ActiveIssuer> items,
+            @JsonProperty("next_cursor") String nextCursor
+    ) {}
 
     public record IssuerRecord(byte[] keyId, String status, byte[] signedRecord) {}
 

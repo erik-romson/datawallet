@@ -50,6 +50,9 @@ datawallet:
       app-attest:
         team-id: ""
         bundle-id: ""
+    republish:
+      interval-ms: 302400000
+      batch-size: 50
     denylist:
       refresh-interval-seconds: 60
       max-staleness-seconds: 600
