@@ -200,8 +200,33 @@ mTLS with operator cert (separate CA OU from issuers).
 | `POST` | `/v1/admin/directory` | signed CBOR record (`application/cbor`) | `201 Created` |
 | `POST` | `/v1/admin/root-update` | signed CBOR root-update record | `201 Created` |
 | `GET`  | `/v1/admin/audit?since_seq=N&limit=M` | — | `AuditPage` (JSON) — includes hash-chain head |
+| `GET`  | `/v1/admin/directory/revoked-issuers` | — | `[{install_uuid, key_id, valid_until, revoked_at}]` (JSON array) |
+| `GET`  | `/v1/admin/directory/active-issuers?cursor=&limit=` | — | `ActiveIssuerPage` (JSON, paginated) |
 
 Server validates root-quorum signatures on `root-update` against currently-pinned roots before accepting.
+
+`GET /v1/admin/directory/active-issuers` returns only eligible records for republishing:
+`record_type='issuer' AND status='active' AND pending_revocation=false`. Rotation-targeted keys
+(`pending_revocation=true`) are excluded — they must age out, not be kept fresh.
+
+```jsonc
+// ActiveIssuerPage
+{
+  "items": [
+    {
+      "subject_id":    "<uuid>",            // install UUID
+      "key_id":        "<b64url 16 bytes>",
+      "valid_from":    1714000000000,        // UTC ms since epoch
+      "valid_until":   1745536000000,
+      "issued_at":     1714000000000,
+      "signed_record": "<b64url CBOR>"      // current signed directory record
+    }
+  ],
+  "next_cursor": "<opaque>"  // null when exhausted
+}
+```
+
+Query params: `cursor=<opaque>`, `limit=<1..100>` (default 50). Ordered `issued_at DESC, subject_id DESC`.
 
 ## 4. Error model
 

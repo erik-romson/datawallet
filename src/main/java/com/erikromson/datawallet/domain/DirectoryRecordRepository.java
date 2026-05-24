@@ -36,4 +36,25 @@ public interface DirectoryRecordRepository
 
     @Query("SELECT d FROM DirectoryRecordEntity d WHERE d.recordType = 'issuer' AND d.status = 'revoked'")
     List<DirectoryRecordEntity> findRevokedIssuers();
+
+    @Query(value = """
+            SELECT * FROM directory_records
+            WHERE record_type = 'issuer' AND status = 'active' AND pending_revocation = false
+            ORDER BY issued_at DESC, subject_id DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<DirectoryRecordEntity> findActiveIssuers(@Param("limit") int limit);
+
+    @Query(value = """
+            SELECT * FROM directory_records
+            WHERE record_type = 'issuer' AND status = 'active' AND pending_revocation = false
+            AND (issued_at < :cursorTs
+                 OR (issued_at = :cursorTs AND subject_id < :cursorId))
+            ORDER BY issued_at DESC, subject_id DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<DirectoryRecordEntity> findActiveIssuersWithCursor(
+            @Param("cursorTs") Instant cursorTs,
+            @Param("cursorId") UUID cursorId,
+            @Param("limit") int limit);
 }
