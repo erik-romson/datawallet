@@ -46,13 +46,9 @@ class AdminActiveIssuersControllerIT {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.update("""
-                DELETE FROM directory_records WHERE subject_id IN (
-                    ?::uuid, ?::uuid, ?::uuid, ?::uuid, ?::uuid, ?::uuid
-                )
-                """,
-                ACTIVE_1.toString(), ACTIVE_2.toString(), ACTIVE_3.toString(),
-                SUPERSEDED.toString(), PENDING.toString(), VERIFIER.toString());
+        // active-issuers enumerates the whole table; other ITs sharing this container leave
+        // issuer records behind, so wipe before seeding to keep the global enumeration isolated.
+        jdbcTemplate.update("DELETE FROM directory_records");
 
         // three eligible: active issuer, no pending_revocation, staggered issued_at for stable ordering
         insertIssuer(ACTIVE_1, "active", false, "now() - interval '5 seconds'");
