@@ -16,6 +16,17 @@ if [ -f spec/tools/jwt_interop_check.py ]; then
     fi
 fi
 
+# Fixture drift check — committed fixtures must match gen.py output
+echo "--- Fixture drift check ---"
+if [ -d spec/tools/.venv ]; then
+    spec/tools/.venv/bin/python3 spec/tools/gen.py --check
+elif command -v python3 &>/dev/null; then
+    python3 spec/tools/gen.py --check
+else
+    echo "ERROR: python3 not available; fixture drift check cannot run" >&2
+    exit 1
+fi
+
 if [ -f intermediate/pom.xml ]; then
     echo "--- Intermediate test phase ---"
     mvn -B -f intermediate/pom.xml verify

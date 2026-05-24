@@ -204,7 +204,33 @@ Each negative is a separate test that asserts the rejection path is taken **befo
 - Uses `sodium_libs` for crypto and `package:cbor` in canonical mode.
 - Web build runs the same tests under `dart test --platform chrome` to catch WASM-specific divergence (especially Argon2id at the web floor).
 
-### 5.3 Python sanity (`spec/fixtures/.../test_self.py`)
+### 5.3 Kotlin (`egnedata-kmp` — external repo)
+
+Kotlin is the **third stack-of-record** for the issuer-side constructions. The egnedata-kmp app
+builds and signs envelopes, generates UUIDv7 entry IDs, computes `key_id`, derives fingerprints,
+and performs per-recipient key wrapping. Its parity suite must pass against the committed fixtures;
+until it does, Workstream D is not complete.
+
+**Fixtures the Kotlin suite must cover:**
+
+| Fixture | Assertion |
+|---------|-----------|
+| `envelopes/mobile-built/single-recipient.cbor` | Build from inputs → bytes match; signature verifies; alice_enc can decrypt |
+| `envelopes/mobile-built/binary-payload.cbor` | Build from binary inputs → bytes match; signature verifies; alice_enc can decrypt |
+| `envelopes/mobile-built/binary-payload-multi.cbor` | Build from binary inputs → bytes match; signature verifies; both alice_enc and bob_enc can decrypt |
+| `inputs/uuids.json` | UUIDv7 generation from `ts_ms` + `rand_hex` → `expected` |
+| `inputs/keypairs.json` | Ed25519 and X25519 `key_id = sha256(public_key)[0:16]` |
+| `fingerprints/pubkey-to-fp.json` | Fingerprint derivation per `crypto-formats.md §8` |
+| `envelopes/invalid/tampered-ciphertext.cbor` | Rejected before secretbox |
+| `envelopes/invalid/wrong-issuer-key.cbor` | Signature invalid |
+
+**Cross-repo acceptance gate:**
+The Kotlin parity suite lives in `egnedata-kmp` (owned by the app team) and is **not run by
+this pipeline**. The gate is: all eight fixture groups above pass in `egnedata-kmp` CI against
+the HEAD of `spec/fixtures/` from this repo. Workstream D is declared done only after that CI run
+is green and linked in the delivery checklist.
+
+### 5.4 Python sanity (`spec/fixtures/.../test_self.py`)
 - A small `pytest` suite that re-runs the generator's own assertions against committed fixtures. Acts as the canary: if Python disagrees with the committed bytes, the fixtures are corrupt regardless of what the stacks say.
 
 ## 6. CI integration
